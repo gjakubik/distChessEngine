@@ -22,7 +22,9 @@ This project allows you to play against our custom distributed chess engine and 
 | [hikaru](hikaru)      |   Game Management API     | 
  
  ## Getting Started
- 
+
+The specific instructions for each component of this project are found within the README of each of the folders linked above.
+
  
  ---
  <img src="https://www.chessprogramming.org/images/thumb/0/09/Stockfish-logo.png/300px-Stockfish-logo.png" width="25px" /> [Powered by Stockfish]
