@@ -17,9 +17,9 @@ This project allows you to play against our custom distributed chess engine and 
 ## Structure
 | Codebase              |      Description          |
 | :-------------------- | :-----------------------: |
-| [harmon](harmon)      |      Chess Engine         |
-| [hess](hess)          |     React Frontend        |
-| [hikaru](hikaru)      |   Game Management API     | 
+| <img src="https://i.pinimg.com/originals/2c/95/04/2c950491f152f19fd03ee608cf08bbe1.jpg" width="30px" /> [harmon](harmon)  |      Chess Engine         |
+| <img src="https://players.chessbase.com/picture/hes24061" width="30px" />[hess](hess)                                     |     React Frontend        |
+| <img src="https://www.tatasteelchess.in/sites/default/files/2018-09/nakamura.jpg" width="30px" />[hikaru](hikaru)         |   Game Management API     | 
  
  ## Getting Started
 
