@@ -1,4 +1,5 @@
-<img src="https://www.chessprogramming.org/images/thumb/0/09/Stockfish-logo.png/300px-Stockfish-logo.png" align="right" />
+<img src="https://www.chessprogramming.org/images/thumb/0/09/Stockfish-logo.png/300px-Stockfish-logo.png" width="50px" align="right" />
+
 # Distributed Chess Engine
 #### _Distributed Systems Fall 2021_
 
