@@ -12,7 +12,14 @@ This project allows you to play against our custom distributed chess engine and 
     - Watch it play itself
     - Game metrics for different configurations
 - Custom API to communicate between engine and GUI
-    - Parse backend to handle game states  
+    - Parse backend to handle game states 
+
+## Structure
+| Codebase              |      Description          |
+| :-------------------- | :-----------------------: |
+| [harmon](harmon)      |      Chess Engine         |
+| [hess](hess)          |     React Frontend        |
+| [hikaru](hikaru)      |   Game Management API     | 
  
  ## Getting Started
  
