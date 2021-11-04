@@ -1,5 +1,3 @@
-<img src="https://www.chessprogramming.org/images/thumb/0/09/Stockfish-logo.png/300px-Stockfish-logo.png" width="50px" align="right" />
-
 # Distributed Chess Engine
 #### _Distributed Systems Fall 2021_
 
@@ -14,4 +12,12 @@ This project allows you to play against our custom distributed chess engine and 
     - Watch it play itself
     - Game metrics for different configurations
 - Custom API to communicate between engine and GUI
-    - Parse backend to handle game states 
+    - Parse backend to handle game states  
+ 
+ ## Getting Started
+ 
+ 
+ ---
+ <img src="https://www.chessprogramming.org/images/thumb/0/09/Stockfish-logo.png/300px-Stockfish-logo.png" width="25px" /> [Powered by Stockfish]
+
+[Powered by Stockfish]: https://stockfishchess.org/
