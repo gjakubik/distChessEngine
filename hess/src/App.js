@@ -1,11 +1,17 @@
-import logo from './logo.svg';
-import { Chessboard } from 'react-chessboard';
-import './App.css';
+import React, { useRef, useState } from 'react';
+import { Chessboard, Chess } from 'react-chessboard';
+
 
 function App() {
+
+  const [game, setGame] = useState(new Chess());
+
   return (
     <div className="App">
-      <Chessboard id="BasicBoard" />
+      <Chessboard 
+        id="BasicBoard"
+        
+      />
     </div>
   );
 }
