@@ -25,7 +25,7 @@ def receive(s):
 def update_ns(port, project, owner):
     # send UDP message to name server
     # {type: ???, owner: OWNER port: PORT, project: PROJECT}
-    message = json.dumps({'type': , 'owner': owner, 'port': port, 'project'; project}) #TODO figure out what 'type' should be
+    message = json.dumps({'type': 'chessEngine', 'owner': owner, 'port': port, 'project': project}) #TODO figure out what 'type' should be
     ns_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ns_sock.sendto(message.encode(), (NAME_SERVER, NS_PORT))
     ns_sock.close()

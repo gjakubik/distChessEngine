@@ -37,11 +37,13 @@ def ns_connect(project):
     data = data.decode()
     data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
     json_data = json.loads(data)
-    host, port = '', 0
+    host, port, recent = '', 0, 0
     for el in json_data:
-        if el['project'] == project:
-            host = el['name']
-            port = el['port']
+        if el['project'] == project and el['type'] == 'chessEngine':
+            if el['lastheardfrom'] > recent: 
+                host = el['name']
+                port = el['port']
+                recent = el['lastheardfrom']
             break
     return connect(host, port)
 
