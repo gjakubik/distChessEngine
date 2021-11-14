@@ -1,0 +1,10 @@
+{
+  "applications": {
+    "_default": {
+      "link": "distChessEngine"
+    },
+    "distChessEngine": {
+      "applicationId": "gUpraAvGUv44Gl88sFR7DiDpuWGCl4z59xeP8PgW"
+    }
+  }
+}

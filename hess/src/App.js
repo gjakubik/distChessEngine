@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { Chessboard, Chess } from 'react-chessboard';
+import { Chessboard } from 'react-chessboard';
 
 
 function App() {
 
-  const [game, setGame] = useState(new Chess());
+  const [game, setGame] = useState("");
 
   return (
     <div className="App">
