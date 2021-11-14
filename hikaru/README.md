@@ -1,4 +1,4 @@
 # Chess API
 
 ## Game Server
-Provides custom API to interface with our game client. This is the middle-man between the front-end the user experiences (the GUI client) and the back-end calculation of moves (the game engine client)
+This server is in the form of cloud code running on Parse servers. It handles communication between the GUI client and the engine clusters, which is what allows us to orchestrate a game across the system.
