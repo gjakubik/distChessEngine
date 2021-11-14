@@ -1,0 +1,19 @@
+{
+  "name": "hikaru",
+  "version": "1.0.0",
+  "description": "Simple express server to communicate between engine and GUI",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gjakubik/distChessEngine.git"
+  },
+  "author": "Gavin Jakubik and Michael Lee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gjakubik/distChessEngine/issues"
+  },
+  "homepage": "https://github.com/gjakubik/distChessEngine#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
