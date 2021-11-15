@@ -1,0 +1,20 @@
+h1 {
+    margin: auto;
+}
+
+table {
+    border: solid;
+    border-width: 2px;
+}
+
+th {
+    border-bottom: solid;
+    border-width: 2px;
+}
+
+td {
+    border-left: solid;
+    border-bottom: solid;
+    border-width: 1px;
+    padding: 5px;
+}
