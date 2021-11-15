@@ -1,0 +1,33 @@
+html
+    head
+        title EngineAPI
+        style 
+            include style.css
+    body
+        h1 Distributed Chess Engine API
+        h3 Endpoints 
+        table
+            tr 
+                th Endpoint 
+                th Type
+                th Request body 
+                th Response body
+                th Description
+            tr 
+                td /game
+                td POST 
+                td {"username": string, "engine1Id": string, "engine2Id": string }
+                td {"gameId": string} 
+                td Start a game by posting a username and engineIds. If engine2Id is empty it is designated as a player vs. engine game 
+            tr
+                td /game/:gameId
+                td PUT 
+                td { "winner": "player" | "engine1" | "engine2" }
+                td {} 
+                td Update the winner of a game when it is done
+            tr
+                td /move
+                td POST 
+                td { "winner": "player" | "engine1" | "engine2" }
+                td {} 
+                td Update the winner of a game when it is done
