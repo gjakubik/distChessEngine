@@ -28,6 +28,6 @@ html
             tr
                 td /move
                 td POST 
-                td { "winner": "player" | "engine1" | "engine2" }
+                td { "gameId": string, "state": FEN string, "moveNum": int }
                 td {} 
                 td Update the winner of a game when it is done
