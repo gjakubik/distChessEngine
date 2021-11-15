@@ -17,11 +17,25 @@ app.get('/', (req, res) => {
 app.post('/game', (req, res) => {
     // TODO: Find engine on nameserver
 
-    // TODO: Send message to engine
+    // TODO: Send preflight message to engine
 
     // TODO: Put game into Parse
 
-    // TODO: Send back Game Id and 
+    // TODO: Send back gameId
+
+});
+
+app.post('/move', (req, res) => {
+    // TODO: Put user move in parse
+
+    // TODO: Send move to engine
+
+    // TODO: Get response from engine
+
+    // TODO: Put engine move in parse
+
+    // TODO: Send engine move as response to user
+    
 });
 
 // starting the server

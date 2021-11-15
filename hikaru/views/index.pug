@@ -22,12 +22,18 @@ html
             tr
                 td /game/:gameId
                 td PUT 
-                td { "winner": "player" | "engine1" | "engine2" }
+                td { "winner": ("player" | "engine1" | "engine2") }
                 td {} 
                 td Update the winner of a game when it is done
+            tr
+                td /game/:gameId
+                td GET
+                td {}
+                td { "state": FEN string, "moveNum": int, "winner": ("player" | "engine1" | "engine2") } 
+                td Get the state of a game based on gameId (This will be used for stats once game is completed).
             tr
                 td /move
                 td POST 
                 td { "gameId": string, "state": FEN string, "moveNum": int }
-                td {} 
-                td Update the winner of a game when it is done
+                td { "state": FEN string, "moveNum": int } 
+                td Post a move to this endpoint with a gameId, and it will get the move from the engine and respond with it.
