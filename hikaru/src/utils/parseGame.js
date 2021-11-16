@@ -16,6 +16,7 @@ const create = async (username, engine1Id, engine2Id) => {
         const query = new Parse.Query(Server);
         const engine1Obj = await query.get(engine1Id);
 
+        console.log("Found server");
         myNewObject.set('engine1', engine1Obj.toPointer());
     
         const result = await myNewObject.save();
