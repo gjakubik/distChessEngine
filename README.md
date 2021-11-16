@@ -23,7 +23,54 @@ This project allows you to play against our custom distributed chess engine and 
  
  ## Getting Started
 
-The specific instructions for each component of this project are found within the README of each of the folders linked above.
+### Engine Client Setup
+
+Note: This guide focuses on setup for the student machines at the Universtiy of Notre Dame. If you do not have an account, you will need to find a way to deploy to a cluster of machines. This can be achieved relatively easily(but probably not very cheaply) with virtual machines.
+
+#### *Environment*
+To run this project, it is be
+First, log onto one of the student machines:
+```bash
+ssh <netID>@student00.cse.nd.edu
+```
+
+Now, install Miniconda if you haven't already:
+```bash
+curl https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh > miniconda.sh
+chmod 755 miniconda.sh
+./miniconda.sh
+```
+
+Make sure to enter `yes` for the last step of installation to add `conda` to `PATH`.
+
+You should now see `(base)` in front of your prompt, indicating that conda is working.
+
+Now, create an environment called `distChessEngine` for the project:
+```bash
+conda create --name distChessEngine python=3.9
+```
+
+Once you have done this, navigate to the `/harmon/` directory. When you run an `ls`, you should see `requirements.txt`.
+
+Download the dependencies by running:
+```bash
+pip install requirements.txt
+```
+
+This will install the necessary dependencies to run the engine.
+
+Now, whenever you log on you will be able to activate this environment to run the project with `conda activate distChessEngine`.
+
+#### *Spinning up a Master and Workers*
+
+Todo for Michael
+
+### React Client
+
+To start the react client, navigate to the `/
+
+
+More specific instructions for each component of this project are found within the README of each of the folders linked above.
 
  
  ---
