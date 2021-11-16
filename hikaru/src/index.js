@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 
 app.post('/game', async (req, res) => {
     // Make sure request is valid
+    console.log(req.body);
     try {
         assert(true, req.body.username);
         assert(true, req.body.engine1Id);
