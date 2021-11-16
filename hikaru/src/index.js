@@ -59,20 +59,39 @@ app.post('/game', async (req, res) => {
         console.log(message);
         console.log(servObj);
         console.log(servObj.host, servObj.port);
+
+        /*
         const client = new net.Socket();
         client.connect({ host: servObj.host, port: servObj.port }, () => {
             console.log("Connected to server");
             client.write(len(messageJSON));
             client.write(messageJSON);
         });
+        */
 
         var resp = '';
+        
         // Catch response from engine and check
+        /*
         client.on('data', (data) => {
             resp = data.toString('utf-8');
             console.log(resp);
             client.destroy();
         })
+        */
+
+        resp = await new Promise(resolve => {
+            let socket = net.connect({ host: servObj.host, port: servObj.port }, () => resolve(socket))
+        }).then((socket) => {
+            socket.on('data', (data) => {
+                console.log(resp);
+                resp = data.toString('utf-8');
+                socket.end()
+            });
+            console.log("Connected");
+            socket.write(message);
+        })
+        
     } catch (error) {
         console.log(error);
         res.status(400).send("Failed to contact engine");
