@@ -18,8 +18,14 @@ const create = async (username, engine1Id, engine2Id) => {
             console.log(error);
         });
 
-        console.log("Found server");
-        myNewObject.set('engine1', engine1Obj.toPointer());
+        if (engine1Obj) {
+            console.log("Found server");
+            myNewObject.set('engine1', engine1Obj.toPointer());
+        } else {
+            console.log("Failed to find server");
+            return "";
+        }
+        
     
         const result = await myNewObject.save();
         return result.id;
