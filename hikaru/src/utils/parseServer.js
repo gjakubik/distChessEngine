@@ -24,7 +24,7 @@ const get = async (serverId) => {
     const Server = Parse.Object.extend('Server');
     const query = new Parse.Query(Server);
     try {
-        const result = query.equalTo("objectId", serverId);
+        const result = await query.get(serverId);
         const serverObj = {
             "id":            result.id,
             "host":          result.get('host'),
