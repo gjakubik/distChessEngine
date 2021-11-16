@@ -62,16 +62,12 @@ This will install the necessary dependencies to run the engine.
 Now, whenever you log on you will be able to activate this environment to run the project with `conda activate distChessEngine`.
 
 #### *Spinning up a Master and Workers*
-So, you wanna spin up a game engine eh? well you're in luck because I'm about to type out some instructions for just that (crazy!) 
-So ok the first thing we need you to have is Stockfish which is a HILARIOUS name for the best open source chess engine available. I need to figure out the best way for u to get that on ur computer bc it's kinda a bitch tbh so we'll get to that later.
-
-The game engine can be started by running the `client_runner.py` file in the `/harmon`(alcoholic chess girls who beat soviets r dope, bro) directory:
+The game engine can be started by running the `client_runner.py` file in the `/harmon` directory:
 ```bash
 ./harmon/client_runner.py PROJECT OWNER K
 ```
 Project is the name of your game engine cluster. Your clients will be stored on the nd nameserver under this project, allowing them to easily discover and communicate with each other. OWNER is your name and is similarly used by the nameserver to keep track of who owns the processes. K will be the number of worker clients you want to run the program with. A K value of 0 indicates that you want to run with no workers and only the master client. 
 
-Todo for Michael -- no
 ### React Client
 
 To start the react client, navigate to the `/
