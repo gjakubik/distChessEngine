@@ -61,6 +61,7 @@ app.post('/game', async (req, res) => {
         console.log(servObj.host, servObj.port);
         const client = new net.Socket();
         client.connect({ host: servObj.host, port: servObj.port }, () => {
+            console.log("Connected to server");
             client.write(len(messageJSON));
             client.write(messageJSON);
         });
