@@ -81,6 +81,7 @@ app.post('/move', (req, res) => {
 
 app.post('/server', async (req, res) => {
     // Make sure request is valid
+    console.log(req);
     try {
         assert(true, req.body.host);
         assert(true, req.body.port);
