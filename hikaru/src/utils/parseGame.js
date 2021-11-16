@@ -29,6 +29,7 @@ const create = async (username, engine1Id, engine2Id) => {
         
         
         const result = await myNewObject.save();
+        console.log(result);
         return result.id;
     } catch (error) {
         console.log(error);
