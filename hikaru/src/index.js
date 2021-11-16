@@ -24,27 +24,29 @@ app.post('/game', async (req, res) => {
     try {
         assert(true, req.body.username);
         assert(true, req.body.engine1Id);
-        assert(true, req.body.engine2Id);
     } catch (e) {
         console.log(e);
         res.status(400).send("Bad request data");
         return;
     }
     // Find engine in server list
+    console.log("Finding Engine")
     const servObj = await server.get(req.body.engine1Id);
 
     if (servObj == null) {
         res.status(401).send("Engine Id not found")
     }
 
+    console.log("Creating parse game")
     // Put game into Parse
-    const gameId = await game.create(req.body.username, servObj.id, req.body.engine2Id);
+    const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id);
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
         return;
     }
 
+    console.log("sending message to engine")
     // Send gameId to engine
     const message = {
         "owner": req.body.username,

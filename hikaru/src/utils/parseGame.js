@@ -7,13 +7,14 @@ Parse.serverURL = 'https://parseapi.back4app.com/';
 // TODO: Add support for 2 engines
 // Return id string on success and empty on fail
 const create = async (username, engine1Id, engine2Id) => {
-    const myNewObject = new Parse.Object('Game');
-    myNewObject.set('username', username);
-
-    const Server = Parse.Object.extend('Server');
-    const query = new Parse.Query(Server);
     try {
-        const engine1 = await query.equalTo("objectId", engine1Id);
+        const myNewObject = new Parse.Object('Game');
+        myNewObject.set('username', username);
+
+        const Server = Parse.Object.extend('Server');
+        const query = new Parse.Query(Server).equalTo("objectId", engine1Id);
+    
+        const engine1 = query.equalTo("objectId", engine1Id);
 
         myNewObject.set('engine1', engine1);
     
