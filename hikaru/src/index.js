@@ -1,5 +1,7 @@
 const { assert } = require('console');
 const express = require('express');
+const fs      = require('fs');
+const https   = require('https');
 const net     = require('net');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
@@ -93,6 +95,9 @@ app.post('/server', async (req, res) => {
 })
 
 // starting the server
-app.listen(5050, () => {
-    console.log('listening on port http://localhost:5050');
-});
+https.createServer({
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.cert')
+}, app).listen(5050, () => {
+    console.log('listening on port https://gavinjakubik:5050');
+})
