@@ -25,6 +25,7 @@ app.post('/game', async (req, res) => {
         assert(true, req.body.engine1Id);
         assert(true, req.body.engine2Id);
     } catch (e) {
+        console.log(e);
         res.status(400).send("Bad request data");
         return;
     }
@@ -85,6 +86,7 @@ app.post('/server', async (req, res) => {
         assert(true, req.body.port);
         assert(true, req.body.numWorkers);
     } catch (e) {
+        console.log(e);
         res.status(400).send("Bad request data");
         return;
     }

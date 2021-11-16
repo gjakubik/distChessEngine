@@ -14,6 +14,7 @@ const create = async (host, port, numWorkers) => {
         const result = await myNewObject.save();
         return result.id
     } catch (error) {
+        console.log(error);
         return ""
     }
 };
@@ -34,6 +35,7 @@ const get = async (serverId) => {
 
         return serverObj;
     } catch (error) {
+        console.log(error);
         return null
     }
 };

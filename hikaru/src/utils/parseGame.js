@@ -20,6 +20,7 @@ const create = async (username, engine1Id, engine2Id) => {
         const result = await myNewObject.save();
         return result.id;
     } catch (error) {
+        console.log(error);
         return "";
     }
 };
@@ -39,6 +40,7 @@ const get = async (serverId) => {
 
         return serverObj;
     } catch (error) {
+        console.log(error);
         return null
     }
 };
