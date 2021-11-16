@@ -53,23 +53,30 @@ app.post('/game', async (req, res) => {
         "type": "game_id",
         "game_id": gameId
     }
-    const messageJSON = JSON.stringify(message);
-    console.log(message);
-    console.log(servObj);
-    console.log(servObj.host, servObj.port);
-    const client = new net.Socket();
-    client.connect({ host: servObj.host, port: servObj.port }, () => {
-        client.write(len(messageJSON));
-        client.write(messageJSON);
-    });
 
-    var resp = '';
-    // Catch response from engine and check
-    client.on('data', (data) => {
-        resp = data.toString('utf-8');
-        console.log(resp);
-        client.destroy();
-    })
+    try {
+        const messageJSON = JSON.stringify(message);
+        console.log(message);
+        console.log(servObj);
+        console.log(servObj.host, servObj.port);
+        const client = new net.Socket();
+        client.connect({ host: servObj.host, port: servObj.port }, () => {
+            client.write(len(messageJSON));
+            client.write(messageJSON);
+        });
+
+        var resp = '';
+        // Catch response from engine and check
+        client.on('data', (data) => {
+            resp = data.toString('utf-8');
+            console.log(resp);
+            client.destroy();
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(400).send("Failed to contact engine");
+    }
+    
 
     // Send back gameId
     if (resp === 'OK') {
