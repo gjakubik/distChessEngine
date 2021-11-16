@@ -253,6 +253,7 @@ class GameClient:
         self.master = self.connect(host, port)
 
 def main():
+    # TODO: split this off into a diff file
     stockfish = Stockfish(parameters={"Threads": 1, "Minimum Thinking Time": 30})
 
     # TODO parse argv
@@ -263,7 +264,7 @@ def main():
 
     master_client.last_update = master_client.update_ns()
     
-    inputs = [ master_client.listener ]
+    inputs = master_client.workers + [ master_client.listener ]
     outputs = [ ]
     while True:
         try:
