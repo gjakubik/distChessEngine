@@ -28,7 +28,7 @@ This project allows you to play against our custom distributed chess engine and 
 Note: This guide focuses on setup for the student machines at the Universtiy of Notre Dame. If you do not have an account, you will need to find a way to deploy to a cluster of machines. This can be achieved relatively easily(but probably not very cheaply) with virtual machines.
 
 #### *Environment*
-To run this project, it is be (???? THIS IS WEIRD -- michael comment on fragmented sentence @ Gavito)
+
 First, log onto one of the student machines:
 ```bash
 ssh <netID>@student00.cse.nd.edu
