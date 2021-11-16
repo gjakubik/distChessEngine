@@ -45,7 +45,7 @@ app.post('/game', async (req, res) => {
         res.status(402).send("Creation of game failed");
         return;
     }
-    
+
     console.log("sending message to engine")
     // Send gameId to engine
     const message = {
@@ -55,6 +55,7 @@ app.post('/game', async (req, res) => {
     }
     const messageJSON = JSON.stringify(message);
     console.log(message);
+    console.log(servObj);
     console.log(servObj.host, servObj.port);
     const client = new net.Socket();
     client.connect({ host: servObj.host, port: servObj.port }, () => {
