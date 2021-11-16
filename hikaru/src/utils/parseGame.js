@@ -12,11 +12,11 @@ const create = async (username, engine1Id, engine2Id) => {
 
     const Server = Parse.Object.extend('Server');
     const query = new Parse.Query(Server);
-
-    const engine1 = query.equalTo("objectId", engine1Id);
-
-    myNewObject.set('engine1', engine1);
     try {
+        const engine1 = query.equalTo("objectId", engine1Id);
+
+        myNewObject.set('engine1', engine1);
+    
         const result = await myNewObject.save();
         return result.id;
     } catch (error) {
