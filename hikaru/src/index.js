@@ -29,15 +29,15 @@ app.post('/game', async (req, res) => {
         res.status(400).send("Bad request data");
         return;
     }
-    // Find engine in server list - Unnecessary?
+    // Find engine in server list
     const servObj = await server.get(req.body.engine1Id);
 
     if (servObj == null) {
         res.status(401).send("Engine Id not found")
     }
 
-    // TODO: Put game into Parse
-    const gameId = await game.create(username, engine1Id, engine2Id);
+    // Put game into Parse
+    const gameId = await game.create(username, servObj.id, engine2Id);
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
@@ -45,9 +45,16 @@ app.post('/game', async (req, res) => {
     }
 
     // Send gameId to engine
+    const message = {
+        "owner": req.body.username,
+        "type": "game_id",
+        "game_id": gameId
+    }
+    const messageJSON = JSON.stringify(message);
     const client = new net.Socket();
     client.connect({ host: servObj.host, port: servObj.port }, () => {
-        client.write(gameId);
+        client.write(len(messageJSON));
+        client.write(messageJSON);
     });
 
     var resp = '';
