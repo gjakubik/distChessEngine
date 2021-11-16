@@ -99,5 +99,5 @@ https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
 }, app).listen(5050, () => {
-    console.log('listening on port https://gavinjakubik:5050');
+    console.log('listening on port https://gavinjakubik.me:5050');
 })
