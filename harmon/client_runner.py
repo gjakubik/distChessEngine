@@ -24,7 +24,7 @@ def main():
 
     master_client.last_update = master_client.update_ns()
 
-    for i in range(k - 1):
+    for i in range(k):
         worker = game_client.GameClient(project, owner, 'worker', k, i+1, stockfish)
         master_client.workers.append(worker)
     
