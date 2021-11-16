@@ -13,7 +13,8 @@ const create = async (username, engine1Id, engine2Id) => {
 
         const Server = Parse.Object.extend('Server');
         console.log(engine1Id)
-        const engine1Obj = new Parse.Query(Server).equalTo("objectId", engine1Id);
+        const query = new Parse.Query(Server);
+        const engine1Obj = await query.get(engine1Id);
 
         myNewObject.set('engine1', engine1Obj.toPointer());
     
