@@ -16,6 +16,7 @@ NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
 HEADER_SIZE = 32
 GAME_SERVER = 'https://gavinjakubik.me:5050'
+ENCODING = 'utf8'
 
 class GameClient:
     def __init__(self, project, owner, role, k, id, stockfish):
@@ -32,7 +33,8 @@ class GameClient:
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             listener.bind((socket.gethostname(), 0))
-            self.host = socket.gethostname()
+            hostname = socket.gethostname()
+            self.host = socket.gethostbyname(hostname)
             self.port = listener.getsockname()[1]
             listener.listen(5)
             print(f'Listening on port: {self.port}')
@@ -87,8 +89,8 @@ class GameClient:
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
-        message = message.encode()
-        len_message = str(len(message)).encode()
+        message = message.encode(ENCODING)
+        len_message = str(len(message)).encode(ENCODING)
         len_message += b' '*(HEADER_SIZE - len(len_message))
         client.sendall(len_message)
 
@@ -97,7 +99,7 @@ class GameClient:
 
         # capture the response length message
         res_len = client.recv(HEADER_SIZE) # binary object
-        res_len = res_len.decode()
+        res_len = res_len.decode(ENCODING)
         if res_len == '':
             # server didn't send us an appropriate response
             return None 
@@ -115,7 +117,7 @@ class GameClient:
             # TODO: handle this error
             return False
         try:
-            message_len = int(message_len.decode())
+            message_len = int(message_len.decode(ENCODING))
         except ValueError:
             return False
         
@@ -143,7 +145,7 @@ class GameClient:
         message = {'type': f'chessEngine-{self.role}', 'owner': self.owner, 'port': self.port, 'project': self.project}
         message = json.dumps(message)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.sendto(message.encode(), (NAME_SERVER, NS_PORT))
+        s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
         s.close()
         return time.time()
     
@@ -160,7 +162,7 @@ class GameClient:
         ns_sock.connect(NAME_SERVER, NS_PORT)
         # download service info
         req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode())
+        ns_sock.sendall(req.encode(ENCODING))
         chunks = []
         while True:
             chunk = ns_sock.recv(1024)
@@ -169,7 +171,7 @@ class GameClient:
             chunks.append(chunk)
         ns_sock.close()
         data = b''.join(chunks)
-        data = data.decode()
+        data = data.decode(ENCODING)
         data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
         json_data = json.loads(data)
         host, port = '', 0
@@ -185,7 +187,7 @@ class GameClient:
         ns_sock.connect(NAME_SERVER, NS_PORT)
         # download service info
         req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode())
+        ns_sock.sendall(req.encode(ENCODING))
         chunks = []
         while True:
             chunk = ns_sock.recv(1024)
@@ -194,7 +196,7 @@ class GameClient:
             chunks.append(chunk)
         ns_sock.close()
         data = b''.join(chunks)
-        data = data.decode()
+        data = data.decode(ENCODING)
         data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
         json_data = json.loads(data)
         host, port, recent = '', 0, 0

@@ -30,6 +30,7 @@ def main():
     
     
     inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ]
+    print(inputs)
     outputs = [ ]
     while True:
         try:
@@ -41,6 +42,7 @@ def main():
 
             for s in readable: 
                 if s is master_client.listener:
+                    print('uh oh stinky uh oh stinky its connection time!')
                     (client, addr) = master_client.listener.accept()
                     inputs.append(client)
                 else:
