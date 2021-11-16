@@ -37,3 +37,15 @@ html
                 td { "gameId": string, "state": FEN string, "moveNum": int }
                 td { "state": FEN string, "moveNum": int } 
                 td Post a move to this endpoint with a gameId, and it will get the move from the engine and respond with it.
+            tr
+                td /server
+                td POST 
+                td { "host": string, "port": int, "numWorkers": int }
+                td { "serverId": string } 
+                td Register the "master" engine client here so that it can be found when the user starts a game.
+            tr
+                td /server/:serverId
+                td PUT 
+                td { "host": string, "port": int, "numWorkers": int, "droppedWorker": bool}
+                td {} 
+                td Allows the engine to change info about itself as needed.
