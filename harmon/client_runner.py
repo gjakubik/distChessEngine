@@ -17,9 +17,10 @@ def main():
     owner = sys.argv[2]
     k = int(sys.argv[3])
 
-
     master_client = game_client.GameClient(project, owner, 'master', k, 0, stockfish)
-    master_client.game_server_connect(project)
+    response = master_client.game_server_connect(project)
+    master_client.engine_id = json.loads(response.text)["engineId"]
+    print(f'Engine ID: {master_client.engine_id}')
 
     master_client.last_update = master_client.update_ns()
 
@@ -28,7 +29,7 @@ def main():
         master_client.workers.append(worker)
     
     
-    inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener, master_client.game_server ]
+    inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ]
     outputs = [ ]
     while True:
         try:
@@ -42,7 +43,6 @@ def main():
                 if s is master_client.listener:
                     (client, addr) = master_client.listener.accept()
                     inputs.append(client)
-                    master_client.workers.append(client)
                 else:
                     # handle receiving a message from the game server or one of the workers
                     message = master_client.receive(s)
@@ -53,11 +53,18 @@ def main():
                         s.close()
                     # TODO: parse message
                     if messageOwner == 'game_server':
-                        if message['type'] == 'board_state':
+                        print("*new york italian voice* ayyyy we got a game server over here!!!")
+                        print(json.dumps(message))
+                        if message['type'] == 'game_id':
+                            master_client.game_id = message['game_id']
+                            for worker in master_client.workers:
+                                worker.game_id = message['game_id']
+                        elif message['type'] == 'board_state':
                             # pick a move
                             board_state = message['board_state'] # fen string of the board state 
                             master_client.stockfish.set_fen_position(board_state)
                             moves = master_client.gen_moves()
+                            print(f'moves: {moves}')
                             # send messages to all the workers
                             if master_client.workers:
                                 # TODO handle the workers
@@ -66,16 +73,19 @@ def main():
                                 move = moves[0]
                                 master_client.stockfish.make_moves_from_current_position([move])
                                 message = {
+                                    'owner': 'master',
+                                    'engineId': master_client.engine_id,
+                                    'game_id': master_client.game_id,
                                     'type': 'board_state',
                                     'board_state': master_client.stockfish.get_fen_position()
                                 }
+                                print(f'Message: \n {message}')
                                 response = master_client.send(master_client.game_server, message)
                                 if response == None:
                                     # TODO handle dead game server
                                     pass
             for s in exceptional:
                 inputs.remove(s)
-                master_client.workers.remove(s)
                 s.close()
 
         except KeyboardInterrupt:

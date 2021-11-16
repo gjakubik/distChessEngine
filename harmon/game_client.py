@@ -140,9 +140,9 @@ class GameClient:
         return client
 
     def update_ns(self):
-        message = {'type': f'chessEngine-{self.role}', 'owner': {self.owner}, 'port': self.port, 'project': self.project}
+        message = {'type': f'chessEngine-{self.role}', 'owner': self.owner, 'port': self.port, 'project': self.project}
         message = json.dumps(message)
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.sendto(message.encode(), (NAME_SERVER, NS_PORT))
         s.close()
         return time.time()
@@ -150,9 +150,9 @@ class GameClient:
     # establish a connection with the game server via nameserver
     def game_server_connect(self, project):
         # send post request of form: host: MY HOST NAME, port: MY PORT, numWorkers: numWorkers
+        headers = {'Content-Type': 'application/json'} 
         message = {'host': self.host, 'port': self.port, 'numWorkers': self.k}
-        response = requests.post(GAME_SERVER, data = message)
-        print(response.text)
+        response = requests.post(GAME_SERVER+'/server', headers=headers, data=json.dumps(message), verify=False)
         return response
 
     def ns_worker_connect(self, project):
