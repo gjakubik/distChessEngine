@@ -5,7 +5,8 @@ import sys
 import select
 import time
 import socket
-import http
+sys.path.append('c:\\users\\micha\\appdata\\local\\programs\\python\\python310\\lib\\site-packages\\requests')
+import requests
 import json
 from stockfish import Stockfish
 
@@ -14,6 +15,8 @@ from stockfish import Stockfish
 NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
 HEADER_SIZE = 32
+GAME_SERVER = 'https://gavinjakubik.me:5050'
+ENCODING = 'utf8'
 
 class GameClient:
     def __init__(self, project, owner, role, k, id, stockfish):
@@ -30,6 +33,8 @@ class GameClient:
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             listener.bind((socket.gethostname(), 0))
+            hostname = socket.gethostname()
+            self.host = socket.gethostbyname(hostname)
             self.port = listener.getsockname()[1]
             listener.listen(5)
             print(f'Listening on port: {self.port}')
@@ -38,7 +43,6 @@ class GameClient:
         else: 
             # TODO: make socket stuff for workers
             self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # worker socket 
-
             
         # other fields:
         # self.workers -- list of sockets connecting to the workers
@@ -85,8 +89,8 @@ class GameClient:
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
-        message = message.encode()
-        len_message = str(len(message)).encode()
+        message = message.encode(ENCODING)
+        len_message = str(len(message)).encode(ENCODING)
         len_message += b' '*(HEADER_SIZE - len(len_message))
         client.sendall(len_message)
 
@@ -95,7 +99,7 @@ class GameClient:
 
         # capture the response length message
         res_len = client.recv(HEADER_SIZE) # binary object
-        res_len = res_len.decode()
+        res_len = res_len.decode(ENCODING)
         if res_len == '':
             # server didn't send us an appropriate response
             return None 
@@ -113,7 +117,7 @@ class GameClient:
             # TODO: handle this error
             return False
         try:
-            message_len = int(message_len.decode())
+            message_len = int(message_len.decode(ENCODING))
         except ValueError:
             return False
         
@@ -138,48 +142,27 @@ class GameClient:
         return client
 
     def update_ns(self):
-        message = {'type': f'chessEngine-{self.role}', 'owner': {self.owner}, 'port': self.port, 'project': self.project}
+        message = {'type': f'chessEngine-{self.role}', 'owner': self.owner, 'port': self.port, 'project': self.project}
         message = json.dumps(message)
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGAM)
-        s.sendto(message.encode(), (NAME_SERVER, NS_PORT))
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
         s.close()
         return time.time()
     
     # establish a connection with the game server via nameserver
-    def ns_game_server_connect(self, project):
-        ns_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ns_sock.connect((NAME_SERVER, NS_PORT))
-        # download service info
-        req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode())
-        chunks = []
-        while True:
-            chunk = ns_sock.recv(1024)
-            if not chunk or chunk == b'':
-                break
-            chunks.append(chunk)
-        ns_sock.close()
-        data = b''.join(chunks)
-        data = data.decode()
-        data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
-        json_data = json.loads(''.join(data))
-        host, port, recent = '', 0, 0
-        for el in json_data:
-            if el['project'] == project and el['type'] == 'chessEngine-gameServer':
-                # connect the game server
-                if el['lastheardfrom'] > recent: 
-                    host = el['name']
-                    port = el['port']
-                    recent = el['lastheardfrom']
-                break
-        self.game_server = self.connect(host, port) # TODO: do we wanna update this every time we call connect? 
+    def game_server_connect(self, project):
+        # send post request of form: host: MY HOST NAME, port: MY PORT, numWorkers: numWorkers
+        headers = {'Content-Type': 'application/json'} 
+        message = {'host': self.host, 'port': self.port, 'numWorkers': self.k}
+        response = requests.post(GAME_SERVER+'/server', headers=headers, data=json.dumps(message), verify=False)
+        return response
 
     def ns_worker_connect(self, project):
         ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
         ns_sock.connect(NAME_SERVER, NS_PORT)
         # download service info
         req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode())
+        ns_sock.sendall(req.encode(ENCODING))
         chunks = []
         while True:
             chunk = ns_sock.recv(1024)
@@ -188,7 +171,7 @@ class GameClient:
             chunks.append(chunk)
         ns_sock.close()
         data = b''.join(chunks)
-        data = data.decode()
+        data = data.decode(ENCODING)
         data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
         json_data = json.loads(data)
         host, port = '', 0
@@ -204,7 +187,7 @@ class GameClient:
         ns_sock.connect(NAME_SERVER, NS_PORT)
         # download service info
         req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode())
+        ns_sock.sendall(req.encode(ENCODING))
         chunks = []
         while True:
             chunk = ns_sock.recv(1024)
@@ -213,7 +196,7 @@ class GameClient:
             chunks.append(chunk)
         ns_sock.close()
         data = b''.join(chunks)
-        data = data.decode()
+        data = data.decode(ENCODING)
         data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
         json_data = json.loads(data)
         host, port, recent = '', 0, 0
