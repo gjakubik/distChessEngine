@@ -41,10 +41,16 @@ app.post('/game', async (req, res) => {
 
     console.log("Creating parse game")
     // Put game into Parse
+    var err = "";
     const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id)
         .catch((error) => {
-            res.status(402).send(error)
+            err = error;
         });
+    
+    if (err !== "") {
+        res.status(400).send(err);
+        return;
+    }
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
@@ -61,10 +67,13 @@ app.post('/game', async (req, res) => {
 
     const resp = await tcp.sendTCP(servObj.host, servObj.port, message, 5000)
         .catch((error) => {
-        res.status(400).send(error);
-        return;
-    });
+            err = error
+        });
     
+    if (err !== "") {
+        res.status(400).send(err);
+        return;
+    }
 
     // Send back gameId
     if (resp === 'OK') {
