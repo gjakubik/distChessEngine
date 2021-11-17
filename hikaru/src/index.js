@@ -68,7 +68,7 @@ app.post('/game', async (req, res) => {
         res.status(200).send({"gameId": gameId});
         return;
     } else {
-        res.status(403).send("Engine declined game");
+        res.send("Engine declined game");
     }
 });
 
