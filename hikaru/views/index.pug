@@ -13,39 +13,46 @@ html
                 th Request body 
                 th Response body
                 th Description
+                th Implemented?
             tr 
                 td /game
                 td POST 
                 td {"username": string, "engine1Id": string, "engine2Id": string }
                 td {"gameId": string} 
-                td Start a game by posting a username and engineIds. If engine2Id is empty it is designated as a player vs. engine game 
+                td Start a game by posting a username and engineIds. If engine2Id is empty it is designated as a player vs. engine game
+                td Almost 
             tr
                 td /game/:gameId
                 td PUT 
                 td { "winner": ("player" | "engine1" | "engine2") }
                 td {} 
                 td Update the winner of a game when it is done
+                td No
             tr
                 td /game/:gameId
                 td GET
                 td {}
                 td { "state": FEN string, "moveNum": int, "winner": ("player" | "engine1" | "engine2") } 
                 td Get the state of a game based on gameId (This will be used for stats once game is completed).
+                td No
             tr
                 td /move
                 td POST 
                 td { "gameId": string, "state": FEN string, "moveNum": int }
                 td { "state": FEN string, "moveNum": int } 
                 td Post a move to this endpoint with a gameId, and it will get the move from the engine and respond with it.
+                td No
             tr
                 td /server
                 td POST 
                 td { "host": string, "port": int, "numWorkers": int }
                 td { "serverId": string } 
                 td Register the "master" engine client here so that it can be found when the user starts a game.
+                td Yes
             tr
                 td /server/:serverId
                 td PUT 
                 td { "host": string, "port": int, "numWorkers": int, "droppedWorker": bool}
                 td {} 
                 td Allows the engine to change info about itself as needed.
+                td No

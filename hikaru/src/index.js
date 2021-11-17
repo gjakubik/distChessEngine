@@ -5,6 +5,7 @@ const https   = require('https');
 const net     = require('net');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
+const sendTCP = require('./utils/sendTCP');
 
 // Initialize express app
 const app = express();
@@ -54,48 +55,11 @@ app.post('/game', async (req, res) => {
         "game_id": gameId
     }
 
-    try {
-        const messageJSON = JSON.stringify(message);
-        console.log(message);
-        console.log(servObj);
-        console.log(servObj.host, servObj.port);
-
-        /*
-        const client = new net.Socket();
-        client.connect({ host: servObj.host, port: servObj.port }, () => {
-            console.log("Connected to server");
-            client.write(len(messageJSON));
-            client.write(messageJSON);
-        });
-        */
-
-        var resp = '';
-        
-        // Catch response from engine and check
-        /*
-        client.on('data', (data) => {
-            resp = data.toString('utf-8');
-            console.log(resp);
-            client.destroy();
-        })
-        */
-
-        resp = await new Promise(resolve => {
-            let socket = net.connect({ host: servObj.host, port: servObj.port }, () => resolve(socket))
-        }).then((socket) => {
-            socket.on('data', (data) => {
-                console.log(resp);
-                resp = data.toString('utf-8');
-                socket.end()
-            });
-            console.log("Connected");
-            socket.write(message);
-        })
-        
-    } catch (error) {
-        console.log(error);
-        res.status(400).send("Failed to contact engine");
-    }
+    const resp = await sendTCP(servObj.host, servObj.port, message, 5000)
+        .catch((error) => {
+        res.status(400).send(error);
+        return;
+    });
     
 
     // Send back gameId
