@@ -4,7 +4,7 @@ const sendTCP = (host, port, message, timeout) => {
     return new Promise((resolve, reject) => {
         console.log(host, port, message, timeout);
         const socket = new net.Socket();
-
+        console.log('Creating timeout');
         const id = setTimeout(() => {
             clearTimeout(id);
             socket.destroy();
@@ -12,12 +12,14 @@ const sendTCP = (host, port, message, timeout) => {
             return;
         }, timeout);
 
+        console.log('Connecting to server');
         socket.connect({ host: host, port: port, family: 4 }, () => {
             console.log("connected to engine");
             socket.write(len(message));
             socket.write(message);
         });
 
+        console.log("data handler");
         socket.on("data", data => {
             console.log("Recieved data: ", data.toString('utf-8'));
             resolve(data.toString('utf-8'));
