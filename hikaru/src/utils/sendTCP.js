@@ -2,7 +2,7 @@ const net = require('net');
 
 const sendTCP = (host, port, message, timeout) => {
     return new Promise((resolve, reject) => {
-        
+        console.log(host, port, message, timeout);
         const socket = new net.Socket();
 
         const id = setTimeout(() => {
