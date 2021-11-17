@@ -12,7 +12,7 @@ const sendTCP = (host, port, message, timeout) => {
             return;
         }, timeout);
 
-        socket.connect({ port: port }, host, () => {
+        socket.connect({ host: host, port: port, family: 4 }, () => {
             console.log("connected to engine");
             socket.write(len(message));
             socket.write(message);
