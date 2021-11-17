@@ -10,12 +10,12 @@ import json
 
 
 def main():
-    stockfish = Stockfish("C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe")
+    stockfish = Stockfish(sys.argv[1]) # need to pass in the path to the stockfish executable as first command line argument
 
     # TODO parse argv
-    project = sys.argv[1]
-    owner = sys.argv[2]
-    k = int(sys.argv[3])
+    project = sys.argv[2]
+    owner = sys.argv[3]
+    k = int(sys.argv[4])
 
     master_client = game_client.GameClient(project, owner, 'master', k, 0, stockfish)
     response = master_client.game_server_connect(project)

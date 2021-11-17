@@ -5,7 +5,6 @@ import sys
 import select
 import time
 import socket
-sys.path.append('c:\\users\\micha\\appdata\\local\\programs\\python\\python310\\lib\\site-packages\\requests')
 import requests
 import json
 from stockfish import Stockfish
