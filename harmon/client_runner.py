@@ -11,7 +11,7 @@ import json
 
 def main():
     stockfish = Stockfish(sys.argv[1]) # need to pass in the path to the stockfish executable as first command line argument
-
+    
     # TODO parse argv
     project = sys.argv[2]
     owner = sys.argv[3]

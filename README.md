@@ -66,8 +66,9 @@ Now, whenever you log on you will be able to activate this environment to run th
 #### *Spinning up a Master and Workers*
 The game engine can be started by running the `client_runner.py` file in the `/harmon` directory:
 ```bash
-./harmon/client_runner.py PATH_TO_STOCKFISH PROJECT OWNER K
+./harmon/client_runner.py "PATH_TO_STOCKFISH" PROJECT OWNER K
 ```
+Note: you must surround the stockfish path in quotes, otherwise the program will throw an error. 
 Project is the name of your game engine cluster. Your clients will be stored on the nd nameserver under this project, allowing them to easily discover and communicate with each other. OWNER is your name and is similarly used by the nameserver to keep track of who owns the processes. K will be the number of worker clients you want to run the program with. A K value of 0 indicates that you want to run with no workers and only the master client. 
 
 ### React Client
