@@ -35,7 +35,8 @@ app.post('/game', async (req, res) => {
     const servObj = await server.get(req.body.engine1Id);
 
     if (servObj == null) {
-        res.status(401).send("Engine Id not found")
+        res.status(401).send("Engine Id not found");
+        return;
     }
 
     console.log("Creating parse game")
@@ -65,6 +66,7 @@ app.post('/game', async (req, res) => {
     // Send back gameId
     if (resp === 'OK') {
         res.status(200).send({"gameId": gameId});
+        return;
     } else {
         res.status(403).send("Engine declined game");
     }
