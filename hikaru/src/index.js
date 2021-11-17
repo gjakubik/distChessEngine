@@ -5,7 +5,7 @@ const https   = require('https');
 const net     = require('net');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
-const sendTCP = require('./utils/sendTCP');
+const tcp     = require('./utils/sendTCP');
 
 // Initialize express app
 const app = express();
@@ -55,7 +55,7 @@ app.post('/game', async (req, res) => {
         "game_id": gameId
     }
 
-    const resp = await sendTCP(servObj.host, servObj.port, message, 5000)
+    const resp = await tcp.sendTCP(servObj.host, servObj.port, message, 5000)
         .catch((error) => {
         res.status(400).send(error);
         return;
