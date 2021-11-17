@@ -85,6 +85,7 @@ app.post('/move', (req, res) => {
 
 app.post('/server', async (req, res) => {
     // Make sure request is valid
+    console.log(req);
     try {
         assert(true, req.body.host);
         assert(true, req.body.port);
@@ -96,7 +97,6 @@ app.post('/server', async (req, res) => {
     }
     // Put server into parse
     const engineId = await server.create(req.body.host, req.body.port, req.body.numWorkers);
-    console.log("New engine: ", engineId);
     // Respond with engineId
     res.status(200).send({"engineId": engineId});
 })
