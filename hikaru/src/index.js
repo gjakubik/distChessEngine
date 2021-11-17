@@ -41,7 +41,10 @@ app.post('/game', async (req, res) => {
 
     console.log("Creating parse game")
     // Put game into Parse
-    const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id);
+    const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id)
+        .catch((error) => {
+            res.status(402).send(error)
+        });
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
