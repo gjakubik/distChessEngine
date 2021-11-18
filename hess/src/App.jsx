@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Container   from '@mui/material/Container';
 
 import BoardView from './components/BoardView';
+import NavBar from './components/NavBar';
 
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
   return (
     <React.Fragment>
       <CssBaseline />
-      <Container maxWidth='lg'>
+      <NavBar />
+      <Container maxWidth='lg' height="100vh">
         {/* App bar here */}
         <BoardView />
       </Container>
