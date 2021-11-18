@@ -1,8 +1,9 @@
 const Parse   = require('parse/node');
+const constants = require('../constants');
 
 // Initialize parse
-Parse.initialize('gUpraAvGUv44Gl88sFR7DiDpuWGCl4z59xeP8PgW', 'b1rryIdHNtOJh2b5OlOx6uxpbRRRVQN5NVCt0mYk');
-Parse.serverURL = 'https://parseapi.back4app.com/';
+Parse.initialize(constants.PARSE_APP_ID, constants.PARSE_JS_KEY);
+Parse.serverURL = constants.PARSE_BASE_URL;
 
 // Return id string on success and empty on fail
 const create = async (host, port, numWorkers) => {
