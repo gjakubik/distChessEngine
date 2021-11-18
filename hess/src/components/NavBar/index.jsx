@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import Button     from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon   from '@mui/icons-material/Menu';
+import Stack      from '@mui/material/Stack';
 
 export default function NavBar() {
   return (
@@ -25,7 +26,10 @@ export default function NavBar() {
           <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
             Distributed Chess Engine
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Stack direction="row" spacing={2}>
+            <Button color="inherit">Register</Button>
+            <Button color="inherit">Login</Button>
+          </Stack>
         </Toolbar>
       </AppBar>
     </Box>

@@ -71,19 +71,21 @@ export default function BoardView({ boardWidth }) {
         chessboardRef.current.clearPremoves();
     };
 
+    const newGameHandler = () => {
+        safeGameMutate((game) => {
+            game.reset();
+        });
+        chessboardRef.current.clearPremoves();
+        setGameEnd(false);
+    };
+
     return (
         <React.Fragment>
-            <Backdrop
-                sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
-                open={gameEnd}
-            >
-                <Typography>Game Over</Typography>
-            </Backdrop>
             <Stack sx={{alignItems: "center", marginTop: "40px"}} spacing={4}>
                 <Stack direction="row" spacing={2}>
                     <TextField 
                         id="username" 
-                        label="Username" 
+                        label="Guest Username" 
                         variant="standard"
                         value={username}
                         onChange={(event) => {
@@ -92,7 +94,7 @@ export default function BoardView({ boardWidth }) {
                     />
                     <TextField 
                         id="engineId" 
-                        label="EngineId" 
+                        label="Engine ID" 
                         variant="standard"
                         value={engineId}
                         onChange={(event) => {
@@ -138,6 +140,18 @@ export default function BoardView({ boardWidth }) {
                 )
                 }
             </Stack>
+            <Backdrop
+                sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
+                open={gameEnd}
+            >
+                <Stack sx={{alignItems: 'center'}} spacing={4}>
+                    <Typography>Game Over</Typography>
+                    <Stack direction="row" >
+                        <Button variant="contained" onClick={newGameHandler}>New Game</Button>
+                        {/* Add button to display stats for game */}
+                    </Stack>
+                </Stack>
+            </Backdrop>
         </React.Fragment>
     );
 }
