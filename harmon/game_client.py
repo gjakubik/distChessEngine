@@ -8,6 +8,7 @@ import socket
 import requests
 import json
 from stockfish import Stockfish
+import math
 
 
 # globals
@@ -27,7 +28,7 @@ class GameClient:
         self.stockfish = stockfish
 
         if self.role == 'master':
-            self.workers = [] 
+            self.workers = [] # list of GameClients
             # tcp listener to communicate with worker clients
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -45,12 +46,68 @@ class GameClient:
             
         # other fields:
         # self.workers -- list of sockets connecting to the workers
-        # self.master -- socket connecting to the master client
 
-    def eval_move(self, board_state, depth, time):
+    def election_vote(self):
+        # worker client votes in election to decide new master client
+        # elections are bully algorithms where lowest id worker becomes new master
+        message = {
+            "type": "vote", 
+            "id": self.id,
+        }
+        # TODO: handle timeouts
+        response = self.send(self.server, message)
+
+    def make_master(self, workers):
+        # gets list of workers passed in from servere
+        # make this worker client the new master 
+        self.role = 'master'
+        self.workers = workers
+
+        # tcp listener to communicate with worker clients
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        listener.bind((socket.gethostname(), 0))
+        hostname = socket.gethostname()
+        self.host = socket.gethostbyname(hostname)
+        self.port = listener.getsockname()[1]
+        listener.listen(5)
+        print(f'Listening on port: {self.port}')
+        self.listener = listener # socket that will communicate with the workers
+        
+        # connect workers to new master
+        for worker in self.workers:
+            worker.worker.close()
+            worker.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            worker.worker.connect((self.host, self.port))
+        
+        # TODO: send message to all workers saying i am new master
+    
+    def handle_worker_fail():
+        # have this master client handle the failure of one of the workers
+        pass
+
+def eval_responses(self, evals, color):
+    # TODO check the data structure of this stuff
+    # evals is a list of (move, evaluation) tuples
+    # returns a tuple of (move, evaluation)
+    max_cp = (None, (-1) * math.inf)
+    best_mate = (None, math.inf)
+    for e in evals:
+        if e[1][0] > max_cp[1]: 
+            max_cp = (e[0], e[1][0])
+        if math.abs(e[1][1]) < best_mate[1]:
+            best_mate = (e[0], e[1][1])
+    
+    if math.abs(best_mate[1]) <= 3:
+        return best_mate
+    else:
+        return max_cp
+
+    def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
         worker_fish = Stockfish()
         worker_fish.set_fen_position(board_state)
+        worker_fish.make_moves_from_current_position([move])
         for i in range(depth):
             move = worker_fish.get_best_move_time(time)
             if move == None:
@@ -60,7 +117,9 @@ class GameClient:
             if move == None:
                 break
             worker_fish.make_moves_from_current_position([move])
-        return worker_fish.get_evaluation() # this is a dict of eval in CP or mate in x 
+
+        evaluation = worker_fish.get_evaluation()
+        return (move, evaluation)
 
     def gen_moves(self):
         moves = self.stockfish.get_top_moves(self.k)

@@ -35,12 +35,22 @@ app.post('/game', async (req, res) => {
     const servObj = await server.get(req.body.engine1Id);
 
     if (servObj == null) {
-        res.status(401).send("Engine Id not found")
+        res.status(401).send("Engine Id not found");
+        return;
     }
 
     console.log("Creating parse game")
     // Put game into Parse
-    const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id);
+    var err = "";
+    const gameId = await game.create(req.body.username, req.body.engine1Id, req.body.engine2Id)
+        .catch((error) => {
+            err = error;
+        });
+    
+    if (err !== "") {
+        res.status(400).send(err);
+        return;
+    }
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
@@ -57,16 +67,20 @@ app.post('/game', async (req, res) => {
 
     const resp = await tcp.sendTCP(servObj.host, servObj.port, message, 5000)
         .catch((error) => {
-        res.status(400).send(error);
-        return;
-    });
+            err = error
+        });
     
+    if (err !== "") {
+        res.status(400).send(err);
+        return;
+    }
 
     // Send back gameId
     if (resp === 'OK') {
         res.status(200).send({"gameId": gameId});
+        return;
     } else {
-        res.status(403).send("Engine declined game");
+        res.send("Engine declined game");
     }
 });
 
