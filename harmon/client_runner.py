@@ -34,8 +34,13 @@ def main():
         worker.worker.connect((master_client.host, master_client.port))
         master_client.workers.append(worker)
     
-    
-    inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ]
+    inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ] 
+    + [master_client.server] + [ worker.server for worker in master_client.workers ]
+    # inputs: 
+    #   worker sockets -- messages from worker to master
+    #   worker.server -- messages from game server to worker
+    #   master client listener -- new worker connections
+    #   master_client.server -- messages from game server to master
     print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
     while True:
@@ -44,13 +49,14 @@ def main():
             for worker in master_client.workers:
                 if worker.role == 'master':
                     master_client = worker
-                    inputs = [worker.worker for worker in master_client.workers] + [master_client.listener]
+                    master_client.workers.remove(worker)
+                    inputs = [worker.worker for worker in master_client.workers] + [master_client.listener] + [worker.server for worker in master_client.workers ] + [master_client.server]
                     #outputs = outputs = [ worker.worker for worker in master_client.workers ]
                     break
 
             # master checks for worker connections
             # master listens for message from name server and handles it if needed
-            # in this block, have master client update the game server with current list of workers
+            # TODO: in this block, have master client update the game server with current list of workers
             if (time.time() - master_client.last_update) >= 60:
                 master_client.last_update = master_client.update_ns(project)
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
@@ -60,7 +66,7 @@ def main():
                     print('uh oh stinky uh oh stinky its connection time!')
                     (client, addr) = master_client.listener.accept()
                     inputs.append(client)
-                else:
+                elif s is any([worker.worker for worker in master_client.workers] + [master_client.server]): 
                     # handle receiving a message from the game server or one of the workers
                     message = master_client.receive(s)
                     try: 
@@ -68,7 +74,8 @@ def main():
                     except KeyError:
                         inputs.remove(s)
                         s.close()
-                    # TODO: parse message
+                    # parse message
+                    # TODO: maybe wanna make this split up a bit more 
                     if messageOwner == 'game_server':
                         print("*new york italian voice* ayyyy we got a game server over here!!!")
                         print(json.dumps(message))
@@ -113,9 +120,27 @@ def main():
                     elif messageOwner == 'worker':
                         print("received message from a worker")
                         print(message)
+                else: # s is a message from server --> worker
+                    if s in [worker.worker for worker in master_client.workers()]:
+                        for worker in master_client.workers:
+                            if s == worker.worker:
+                                break
+                        # handle message from game server to worker -- election is happening
+                        message = worker.receive(s)
+                        print(message)
+                        # receive message from the server 
+                        # TODO handle malformed json
+                        if message['type'] == 'election':
+                            response = worker.election_vote()
+                        elif message['type'] == 'election_result':
+                            worker.make_master(master_client.workers)
+                        else:
+                            #TODO handle bad message from server to worker
+                            pass
 
             for s in writeable: 
                 pass
+
             for s in exceptional:
                 inputs.remove(s)
                 s.close()

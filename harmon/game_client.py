@@ -81,7 +81,7 @@ class GameClient:
             worker.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             worker.worker.connect((self.host, self.port))
         
-        # TODO: end message to all workers saying i am new master
+        # TODO: send message to all workers saying i am new master
     
     def handle_worker_fail():
         # have this master client handle the failure of one of the workers
