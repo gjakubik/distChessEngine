@@ -26,6 +26,7 @@ class GameClient:
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
+        self.engine_id, self.game_id
 
         if self.role == 'master':
             self.workers = [] # list of GameClients
@@ -46,6 +47,14 @@ class GameClient:
             
         # other fields:
         # self.workers -- list of sockets connecting to the workers
+
+    def workers_update(self):
+        message = {
+            'owner': 'master',
+            'engineId': self.engineId,
+            'type': 'workers_update',
+            'workers': self.workers
+        }
 
     def election_vote(self):
         # worker client votes in election to decide new master client

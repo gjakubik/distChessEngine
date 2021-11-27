@@ -23,7 +23,8 @@ def main():
 
     master_client = game_client.GameClient(project, owner, 'master', k, 0, stockfish)
     response = master_client.game_server_connect(project)
-    master_client.engine_id = json.loads(response.text)["engineId"]
+    engineId = json.loads(response.text)["engineId"]
+    master_client.engine_id = engineId
     print(f'Engine ID: {master_client.engine_id}')
 
     master_client.last_update = master_client.update_ns()
@@ -33,6 +34,7 @@ def main():
         worker.game_server_connect(project) # open connection to server for each worker, only gets used if master fails
         worker.worker.connect((master_client.host, master_client.port))
         master_client.workers.append(worker)
+        worker.engine_id = engieId
     
     inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ] 
     + [master_client.server] + [ worker.server for worker in master_client.workers ]
@@ -58,6 +60,7 @@ def main():
             # master listens for message from name server and handles it if needed
             # TODO: in this block, have master client update the game server with current list of workers
             if (time.time() - master_client.last_update) >= 60:
+                master_client.last_update = master_client.workers_update()
                 master_client.last_update = master_client.update_ns(project)
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
