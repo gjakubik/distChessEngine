@@ -26,7 +26,8 @@ class GameClient:
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
-        self.engine_id, self.game_id
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.connect(('gavinjakubik.me', 5050))
 
         if self.role == 'master':
             self.workers = [] # list of GameClients
@@ -95,22 +96,22 @@ class GameClient:
         # have this master client handle the failure of one of the workers
         pass
 
-def eval_responses(self, evals, color):
-    # TODO check the data structure of this stuff
-    # evals is a list of (move, evaluation) tuples
-    # returns a tuple of (move, evaluation)
-    max_cp = (None, (-1) * math.inf)
-    best_mate = (None, math.inf)
-    for e in evals:
-        if e[1][0] > max_cp[1]: 
-            max_cp = (e[0], e[1][0])
-        if math.abs(e[1][1]) < best_mate[1]:
-            best_mate = (e[0], e[1][1])
-    
-    if math.abs(best_mate[1]) <= 3:
-        return best_mate
-    else:
-        return max_cp
+    def eval_responses(self, evals, color):
+        # TODO check the data structure of this stuff
+        # evals is a list of (move, evaluation) tuples
+        # returns a tuple of (move, evaluation)
+        max_cp = (None, (-1) * math.inf)
+        best_mate = (None, math.inf)
+        for e in evals:
+            if e[1][0] > max_cp[1]: 
+                max_cp = (e[0], e[1][0])
+            if math.abs(e[1][1]) < best_mate[1]:
+                best_mate = (e[0], e[1][1])
+        
+        if math.abs(best_mate[1]) <= 3:
+            return best_mate
+        else:
+            return max_cp
 
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
@@ -172,7 +173,7 @@ def eval_responses(self, evals, color):
             return None 
         res_len = int(res_len)
         # get the actual response
-        response = self.receive(client, res_len)
+        response = self.receive(client)
         return response
 
     def receive(self, client):
@@ -182,10 +183,12 @@ def eval_responses(self, evals, color):
             message_len = client.recv(HEADER_SIZE)
         except ConnectionResetError:
             # TODO: handle this error
+            print("connection was reset by server")
             return False
         try:
             message_len = int(message_len.decode(ENCODING))
         except ValueError:
+            print("value error")
             return False
         
         while bytes_rec < message_len:
@@ -215,7 +218,7 @@ def eval_responses(self, evals, color):
         s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
         s.close()
         return time.time()
-    
+
     # establish a connection with the game server via nameserver
     def game_server_connect(self, project):
         # send post request of form: host: MY HOST NAME, port: MY PORT, numWorkers: numWorkers
@@ -248,7 +251,7 @@ def eval_responses(self, evals, color):
                 host = el['name']
                 port = el['port']
                 self.workers.append(self.connect(host, port))
-    
+
     def ns_master_connect(self, project):
         ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
         ns_sock.connect(NAME_SERVER, NS_PORT)
