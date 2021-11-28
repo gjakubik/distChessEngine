@@ -24,7 +24,6 @@ def main():
     master_client = game_client.GameClient(project, owner, 'master', k, 0, stockfish)
     message = {'type': 'test', 'message': 'hey buddy :)'}
     response = master_client.server_send(master_client.server, message)
-    response = master_client.receive(master_client.server)
     print(response)
     engineId = response["engineId"]
     master_client.engine_id = engineId
