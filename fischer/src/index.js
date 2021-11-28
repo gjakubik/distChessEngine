@@ -3,7 +3,7 @@ var net = require('net');
 var server = net.createServer();    
 server.on('connection', handleConnection);
 
-server.listen(9000, () => {    
+server.listen(5050, () => {    
     console.log('server listening to %j', server.address());  
 });
 
