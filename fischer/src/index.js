@@ -3,7 +3,8 @@ var net = require('net');
 const handleConnection = (conn) => {    
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
     console.log('new client connection from %s', remoteAddress);
-    const onConnData = (d) => {  
+    const onConnData = (d) => {
+        const newData = decode(d);
         console.log('connection data from %s: %j', remoteAddress, d);  
         conn.write(d);  
     }
