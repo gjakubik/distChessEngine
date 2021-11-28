@@ -1,12 +1,5 @@
 var net = require('net');
 
-var server = net.createServer();    
-server.on('connection', handleConnection);
-
-server.listen(5050, () => {    
-    console.log('server listening to %j', server.address());  
-});
-
 const handleConnection = (conn) => {    
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
     console.log('new client connection from %s', remoteAddress);
@@ -26,3 +19,11 @@ const handleConnection = (conn) => {
         console.log('Connection %s error: %s', remoteAddress, err.message);  
     }  
 }
+
+var server = net.createServer();    
+server.on('connection', handleConnection);
+
+server.listen(5050, () => {    
+    console.log('server listening to %j', server.address());  
+});
+
