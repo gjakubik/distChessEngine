@@ -1,20 +1,13 @@
 var net = require('net');
 
-var server = net.createServer();    
-server.on('connection', handleConnection);
-
-server.listen(9000, () => {    
-    console.log('server listening to %j', server.address());  
-});
-
 const handleConnection = (conn) => {    
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
     console.log('new client connection from %s', remoteAddress);
-    conn.on('data', onConnData);  
-    conn.once('close', onConnClose);  
-    conn.on('error', onConnError);
-    const onConnData = (d) => {  
-        console.log('connection data from %s: %j', remoteAddress, d);  
+    const onConnData = (d) => {
+        const newData = d.toString('utf-8');
+        console.log('connection data from %s: %j', remoteAddress, d);
+        console.log('connection data from %s: %s', remoteAddress, newData);
+        conn.write(d.length)  
         conn.write(d);  
     }
 
@@ -25,4 +18,16 @@ const handleConnection = (conn) => {
     const onConnError = (err) => {  
         console.log('Connection %s error: %s', remoteAddress, err.message);  
     }  
+    conn.on('data', onConnData);  
+    conn.once('close', onConnClose);  
+    conn.on('error', onConnError);
+    
 }
+
+var server = net.createServer();    
+server.on('connection', handleConnection);
+
+server.listen(5050, () => {    
+    console.log('server listening to %j', server.address());  
+});
+
