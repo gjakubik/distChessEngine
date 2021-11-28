@@ -5,7 +5,7 @@ const handleConnection = (conn) => {
     console.log('new client connection from %s', remoteAddress);
     const onConnData = (d) => {
         const newData = d.toString('utf-8');
-        console.log('connection data from %s: %j', remoteAddress, d);
+        console.log('connection length from %s: %d', remoteAddress, d.length);
         console.log('connection data from %s: %s', remoteAddress, newData);
         conn.write(d.length.toString() + (" " * (64 - d.length)));  
         conn.write(d);  
