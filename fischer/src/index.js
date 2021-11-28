@@ -4,7 +4,7 @@ const handleConnection = (conn) => {
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
     console.log('new client connection from %s', remoteAddress);
     const onConnData = (d) => {
-        const newData = decode(d);
+        const newData = d.decode();
         console.log('connection data from %s: %j', remoteAddress, d);
         console.log('connection data from %s: %s', remoteAddress, newData);
         conn.write(len(d))  
