@@ -154,6 +154,23 @@ class GameClient:
         response = self.send(message, worker)
         return response # either will be None or OK
 
+    def server_send(self, client, message):
+                # send message representing message length
+        message = json.dumps(message)
+        message = message.encode(ENCODING)
+        client.sendall(message)
+
+        # capture the response length message
+        res_len = client.recv(HEADER_SIZE) # binary object
+        res_len = res_len.decode(ENCODING)
+        if res_len == '':
+            # server didn't send us an appropriate response
+            return None 
+        res_len = int(res_len)
+        # get the actual response
+        response = self.receive(client)
+        return response
+        
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
