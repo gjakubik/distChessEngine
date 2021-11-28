@@ -14,7 +14,7 @@ import math
 # globals
 NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
-HEADER_SIZE = 32
+HEADER_SIZE = 64
 GAME_SERVER = 'https://gavinjakubik.me:5050'
 ENCODING = 'utf8'
 
@@ -155,22 +155,15 @@ class GameClient:
         return response # either will be None or OK
 
     def server_send(self, client, message):
-                # send message representing message length
+        # send message representing message length
         message = json.dumps(message)
         message = message.encode(ENCODING)
         client.sendall(message)
 
-        # capture the response length message
-        res_len = client.recv(HEADER_SIZE) # binary object
-        res_len = res_len.decode(ENCODING)
-        if res_len == '':
-            # server didn't send us an appropriate response
-            return None 
-        res_len = int(res_len)
         # get the actual response
         response = self.receive(client)
         return response
-        
+
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
@@ -182,13 +175,6 @@ class GameClient:
         # send the actual message 
         client.sendall(message)
 
-        # capture the response length message
-        res_len = client.recv(HEADER_SIZE) # binary object
-        res_len = res_len.decode(ENCODING)
-        if res_len == '':
-            # server didn't send us an appropriate response
-            return None 
-        res_len = int(res_len)
         # get the actual response
         response = self.receive(client)
         return response
@@ -207,8 +193,9 @@ class GameClient:
         except ValueError:
             print("value error")
             return False
-        
-        while bytes_rec < message_len:
+        print(message_len)
+        while bytes_rec <= message_len:
+            print(f'bytes_rec: {bytes_rec}')
             chunk = client.recv(message_len - bytes_rec)
             if chunk == b'': # bad response
                 return None
