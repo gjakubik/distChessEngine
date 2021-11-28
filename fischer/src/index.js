@@ -7,7 +7,7 @@ const handleConnection = (conn) => {
         const newData = d.toString('utf-8');
         console.log('connection length from %s: %d', remoteAddress, d.length);
         console.log('connection data from %s: %s', remoteAddress, newData);
-        console.log('connection sending length to %s: %s', remoteAddress, d.length.toString() + ("*" * (64 - d.length.toString().length)));
+        console.log('connection sending length to %s: %s', remoteAddress, d.length.toString().padEnd((64 - d.length.toString().length), "*"));
         conn.write(d.length.toString().padEnd((64 - d.length.toString().length), " "));  
         conn.write(d);  
     }
