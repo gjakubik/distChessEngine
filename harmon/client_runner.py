@@ -22,8 +22,11 @@ def main():
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     master_client = game_client.GameClient(project, owner, 'master', k, 0, stockfish)
-    response = master_client.game_server_connect(project)
-    engineId = json.loads(response.text)["engineId"]
+    message = {'type': 'test', 'message': 'hey buddy :)'}
+    response = master_client.send(master_client.server, message)
+    response = master_client.receive(master_client.server)
+    print(response)
+    engineId = response["engineId"]
     master_client.engine_id = engineId
     print(f'Engine ID: {master_client.engine_id}')
 
@@ -31,10 +34,9 @@ def main():
 
     for i in range(k):
         worker = game_client.GameClient(project, owner, 'worker', k, i+1, stockfish)
-        worker.game_server_connect(project) # open connection to server for each worker, only gets used if master fails
         worker.worker.connect((master_client.host, master_client.port))
         master_client.workers.append(worker)
-        worker.engine_id = engieId
+        worker.engine_id = engineId
     
     inputs = [ worker.worker for worker in master_client.workers ] + [ master_client.listener ] 
     + [master_client.server] + [ worker.server for worker in master_client.workers ]
@@ -100,6 +102,7 @@ def main():
                                     response = master_client.assign_move(message['color'], message['board_state'], move, worker)
                                     if response['status'] != 'OK':
                                         # TODO handle failed client
+                                        pass
                                     (move, evaluation) = worker.eval_move(message['board_state'], move, DEPTH, ENGINE_TIME)
                                     evals.append((move, evaluation)) 
                                 # evaluate the worker responses
@@ -149,9 +152,9 @@ def main():
                 s.close()
             outputs = []
         except KeyboardInterrupt:
-            for s in inputs:
-                s.close()
-            exit()
+                for s in inputs:
+                    s.close()
+                exit()
 
 
 if __name__ == '__main__':
