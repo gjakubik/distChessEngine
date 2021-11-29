@@ -90,10 +90,7 @@ def main():
             client.evals = []
             client.worker_timestart = time.time()
             for worker, move in zip(client.workers, moves):
-                client.stockfish.set_fen_position(board_state)
-                client.stockfish.make_moves_from_current_position([move])
-                new_board_state = client.stockfish.get_fen_position()
-                response = client.assign_move(color, new_board_state, move, worker)
+                response = client.assign_move(color, board_state, move, worker)
                 if response == None:
                     # TODO handle socket that returns none to this
                     pass

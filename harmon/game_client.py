@@ -118,6 +118,7 @@ class GameClient:
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
+        self.stockfish.make_moves_from_current_position([move])
         print(self.stockfish.get_board_visual())
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
@@ -194,7 +195,6 @@ class GameClient:
         except ValueError:
             print("value error")
             return False
-        print(message_len)
         while bytes_rec < message_len:
             chunk = client.recv(message_len - bytes_rec)
             if chunk == b'': # bad response
