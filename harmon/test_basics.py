@@ -22,27 +22,26 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
-
+        
     stockfish = Stockfish(stockfish_path)
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
-    client = game_client.GameClient(role, k, id, stockfish)
-    client.engineId = engineId 
+    client = game_client.GameClient('master', k, id, stockfish)
 
     if role == "master":
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+        message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
             client.engineId = response['serverId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+            print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
 
     elif role == "worker":
         # master address from server
-        '''client.engineId = engineId 
+        client.engineId = engineId 
         message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
         response = client.server_send(client.server, message)
         try:
@@ -50,8 +49,9 @@ def main():
             master_port = response['port']
             client.worker.connect((master_host, master_port))
         except KeyError:
-            print(f'Server sent unexpected JSON: {response}')'''
+            print(f'Server sent unexpected JSON: {response}')
         inputs = [client.server] + [client.worker] 
+
     # inputs: 
     #   worker sockets -- messages from worker to master
     #   worker.server -- messages from game server to worker
@@ -61,21 +61,6 @@ def main():
     print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
     last_update = time.time()
-    if role == 'master':
-        board_state = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR'
-        color = 'black'
-        client.stockfish.set_fen_position(board_state)
-        moves = client.gen_moves()
-        print(moves)
-        exit(0)
-        if client.workers:
-            client.evals = []
-            client.worker_timestart = time.time()
-            for worker in client.workers and move in moves:
-                response = client.assign_move(color, board_state, move, worker)
-                if response == None:
-                    # TODO handle socket that returns none to this
-                    pass
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
