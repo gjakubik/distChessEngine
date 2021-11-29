@@ -155,7 +155,7 @@ class GameClient:
             "board_state": board_state,
             "move": move
         }
-        response = self.send(message, worker)
+        response = self.send(worker, message)
         return response # either will be None or OK
 
     def server_send(self, client, message):
