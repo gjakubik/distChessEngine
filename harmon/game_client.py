@@ -197,6 +197,7 @@ class GameClient:
         except ValueError:
             print("value error")
             return False
+        print(message_len)
         while bytes_rec <= message_len:
             chunk = client.recv(message_len - bytes_rec)
             if chunk == b'': # bad response
