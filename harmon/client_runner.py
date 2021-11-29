@@ -22,11 +22,11 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
-    try:
+    '''try:
         master_host = sys.argv[6]
         master_port = int(sys.argv[7])
     except IndexError:
-        print('no host or port given, ok if ur starting master')
+        print('no host or port given, ok if ur starting master')'''
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
@@ -49,7 +49,7 @@ def main():
 
     elif role == "worker":
         # master address from server
-        '''client.engineId = engineId 
+        client.engineId = engineId 
         message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
         response = client.server_send(client.server, message)
         try:
@@ -57,7 +57,7 @@ def main():
             master_port = response['port']
             client.worker.connect((master_host, master_port))
         except KeyError:
-            print(f'Server sent unexpected JSON: {response}')'''
+            print(f'Server sent unexpected JSON: {response}')
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
@@ -70,33 +70,6 @@ def main():
     print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
     last_update = time.time()
-    if role == 'master':
-        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-        color = 'black'
-        client.stockfish.set_fen_position(board_state)
-        client.stockfish.make_moves_from_current_position(['e2e4'])
-        board_state = client.stockfish.get_fen_position()
-        print(board_state)
-        moves = client.gen_moves()
-        print(moves)
-        time.sleep(30)
-
-        readable, writeable, exceptional = select.select(inputs, outputs, inputs)
-        for s in readable:
-            if s is client.listener:
-                print("weee wooo weee wooo new connection alert!")
-                (sock, addr) = client.listener.accept()
-                inputs.append(sock)
-                client.workers.append(sock)
-
-        if client.workers:
-            client.evals = []
-            client.worker_timestart = time.time()
-            for worker, move in zip(client.workers, moves):
-                response = client.assign_move(color, board_state, move, worker)
-                if response == None:
-                    # TODO handle socket that returns none to this
-                    pass
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
@@ -108,11 +81,11 @@ def main():
                     #outputs = outputs = [ worker.worker for worker in master_client.workers ]
                     break'''
 
-            '''# TODO: in this block, have master client update the game server with current list of workers
+            # TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
                 response = client.worker_update()
                 # TODO: error check 
-                last_update = time.time()'''
+                last_update = time.time()
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
@@ -136,11 +109,8 @@ def main():
                         moves = client.gen_moves()
                         if client.workers:
                             client.evals = []
-                            for worker in client.workers and move in moves:
-                                client.stockfish.set_fen_position(board_state)
-                                client.stockfish.make_moves_from_current_position([move])
-                                new_board_state = client.stockfish.get_fen_position()
-                                response = client.assign_move(color, new_board_state, move, worker)
+                            for worker, move in zip(client.workers, moves):
+                                response = client.assign_move(color, board_state, move, worker)
                                 if response == None:
                                    # TODO handle socket that returns none to this
                                     pass
@@ -155,7 +125,7 @@ def main():
                                 'moveNum': move_num
                             }
                             print(f'Message: \n {message}')
-                            response = master_client.send(master_client.game_server, message)
+                            response = client.send(client.game_server, message)
                             if response == None:
                                 # TODO handle dead game server
                                 pass
