@@ -175,6 +175,7 @@ def main():
                     #if s is client.listener: # idk if this is how i wanna implement htis
                         #pass
                     if s is client.server: # some sort of election message
+                        continue
                         message = client.receive(s)
                         try:
                             type = message['type']
