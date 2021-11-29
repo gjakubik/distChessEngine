@@ -10,7 +10,7 @@ import json
 
 # globals
 DEPTH = 10 # num turns to sim
-ENGINE_TIME = 3 # seconds
+ENGINE_TIME = 3000 # seconds
 
 def main():
     # parse argv
