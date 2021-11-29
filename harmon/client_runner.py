@@ -172,9 +172,9 @@ def main():
                             message = {'endpoint': '/move', 'state': client.stockfish.get_fen_position(), 'gameId': client.game_id, 'moveNum': move_num}
                 elif role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
-                    if s is client.listener: # idk if this is how i wanna implement htis
-                        pass
-                    elif s is client.server: # some sort of election message
+                    #if s is client.listener: # idk if this is how i wanna implement htis
+                        #pass
+                    if s is client.server: # some sort of election message
                         message = client.receive(s)
                         try:
                             type = message['type']
