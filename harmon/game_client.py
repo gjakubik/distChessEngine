@@ -19,10 +19,8 @@ GAME_SERVER = 'https://gavinjakubik.me:5050'
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, project, owner, role, k, id, stockfish):
-        self.project = project
+    def __init__(self, role, k, id, stockfish):
         self.role = role
-        self.owner = owner
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
@@ -30,7 +28,8 @@ class GameClient:
         self.server.connect(('gavinjakubik.me', 5050))
 
         if self.role == 'master':
-            self.workers = [] # list of GameClients
+            self.evals = []
+            self.workers = [] # list of sockets
             # tcp listener to communicate with worker clients
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -51,11 +50,14 @@ class GameClient:
 
     def workers_update(self):
         message = {
-            'owner': 'master',
-            'engineId': self.engineId,
-            'type': 'workers_update',
+            'endpoint': f'/server/{self.engineId}',
+            'host': self.host,
+            'port': self.port,
+            'role': self.role,
+            'numWorkers': len(self.workers),
             'workers': self.workers
         }
+        return self.server_send(message)
 
     def election_vote(self):
         # worker client votes in election to decide new master client
@@ -65,7 +67,8 @@ class GameClient:
             "id": self.id,
         }
         # TODO: handle timeouts
-        response = self.send(self.server, message)
+        response = self.server_send(self.server, message)
+        return response
 
     def make_master(self, workers):
         # gets list of workers passed in from servere
@@ -129,7 +132,8 @@ class GameClient:
             worker_fish.make_moves_from_current_position([move])
 
         evaluation = worker_fish.get_evaluation()
-        return (move, evaluation)
+        message = {'type': 'evaluation', 'move': move, 'engineId': self.engineId, 'id': id, 'move': move, 'evaluation': evaluation}
+        return self.send(self.worker, message)
 
     def gen_moves(self):
         moves = self.stockfish.get_top_moves(self.k)
@@ -193,9 +197,7 @@ class GameClient:
         except ValueError:
             print("value error")
             return False
-        print(message_len)
         while bytes_rec <= message_len:
-            print(f'bytes_rec: {bytes_rec}')
             chunk = client.recv(message_len - bytes_rec)
             if chunk == b'': # bad response
                 return None
