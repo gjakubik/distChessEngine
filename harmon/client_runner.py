@@ -22,14 +22,20 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
+    try:
+        master_host = sys.argv[6]
+        master_port = sys.argv[7]
+    except IndexError:
+        print('no host or port given, ok if ur starting master')
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient(role, k, id, stockfish)
     client.engineId = engineId 
-
+    
     if role == "master":
+        print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
         '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
@@ -39,6 +45,7 @@ def main():
         except KeyError:
             print(f'ERROR: Unexpected json formatting from server: {response}')'''
         inputs = [client.listener] + [client.server] + client.workers
+        outputs = []
 
     elif role == "worker":
         # master address from server
@@ -51,6 +58,7 @@ def main():
             client.worker.connect((master_host, master_port))
         except KeyError:
             print(f'Server sent unexpected JSON: {response}')'''
+        client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
     # inputs: 
     #   worker sockets -- messages from worker to master
@@ -67,7 +75,16 @@ def main():
         client.stockfish.set_fen_position(board_state)
         moves = client.gen_moves()
         print(moves)
-        exit(0)
+        time.sleep(5)
+
+        readable, writeable, exceptional = select.select(inputs, outputs, inputs)
+        for s in readable:
+            if s is client.listener:
+                print("weee wooo weee wooo new connection alert!")
+                (sock, addr) = client.listener.accept()
+                inputs.append(sock)
+                client.workers.append(sock)
+
         if client.workers:
             client.evals = []
             client.worker_timestart = time.time()
@@ -79,19 +96,19 @@ def main():
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
-            for worker in master_client.workers:
+            '''for worker in master_client.workers:
                 if worker.role == 'master':
                     master_client = worker
                     master_client.workers.remove(worker)
                     inputs = [worker.worker for worker in master_client.workers] + [master_client.listener] + [worker.server for worker in master_client.workers ] + [master_client.server]
                     #outputs = outputs = [ worker.worker for worker in master_client.workers ]
-                    break
+                    break'''
 
-            # TODO: in this block, have master client update the game server with current list of workers
+            '''# TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
                 response = client.worker_update()
                 # TODO: error check 
-                last_update = time.time()
+                last_update = time.time()'''
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 

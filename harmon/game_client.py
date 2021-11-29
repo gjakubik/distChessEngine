@@ -5,7 +5,6 @@ import sys
 import select
 import time
 import socket
-import requests
 import json
 from stockfish import Stockfish
 import math
@@ -226,63 +225,4 @@ class GameClient:
         s.close()
         return time.time()
 
-    # establish a connection with the game server via nameserver
-    def game_server_connect(self, project):
-        # send post request of form: host: MY HOST NAME, port: MY PORT, numWorkers: numWorkers
-        headers = {'Content-Type': 'application/json'} 
-        message = {'host': self.host, 'port': self.port, 'numWorkers': self.k}
-        response = requests.post(GAME_SERVER+'/server', headers=headers, data=json.dumps(message), verify=False)
-        return response
-
-    def ns_worker_connect(self, project):
-        ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
-        ns_sock.connect(NAME_SERVER, NS_PORT)
-        # download service info
-        req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode(ENCODING))
-        chunks = []
-        while True:
-            chunk = ns_sock.recv(1024)
-            if not chunk or chunk == b'':
-                break
-            chunks.append(chunk)
-        ns_sock.close()
-        data = b''.join(chunks)
-        data = data.decode(ENCODING)
-        data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
-        json_data = json.loads(data)
-        host, port = '', 0
-        for el in json_data:
-            if el['project'] == project and el['type'] == 'chessEngine-worker':
-                # create a socket for the worker, add it to workers list
-                host = el['name']
-                port = el['port']
-                self.workers.append(self.connect(host, port))
-
-    def ns_master_connect(self, project):
-        ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
-        ns_sock.connect(NAME_SERVER, NS_PORT)
-        # download service info
-        req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode(ENCODING))
-        chunks = []
-        while True:
-            chunk = ns_sock.recv(1024)
-            if not chunk or chunk == b'':
-                break
-            chunks.append(chunk)
-        ns_sock.close()
-        data = b''.join(chunks)
-        data = data.decode(ENCODING)
-        data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
-        json_data = json.loads(data)
-        host, port, recent = '', 0, 0
-        for el in json_data:
-            if el['project'] == project and el['type'] == 'chessEngine-worker':
-                # create a socket for the master, save it as self.master
-                if el['lastheardfrom'] > recent:
-                    host = el['name']
-                    port = el['port']
-                    recent = el['lastheardfrom']
-                break
-        self.master = self.connect(host, port)
+    
