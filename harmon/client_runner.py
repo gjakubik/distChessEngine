@@ -71,11 +71,12 @@ def main():
     #outputs = [ worker.worker for worker in master_client.workers ]
     last_update = time.time()
     if role == 'master':
-        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         color = 'black'
         client.stockfish.set_fen_position(board_state)
-        client.stockfish.make_moves_from_current_position('e2e4')
+        client.stockfish.make_moves_from_current_position(['e2e4'])
         board_state = client.stockfish.get_fen_position()
+        print(board_state)
         moves = client.gen_moves()
         print(moves)
         time.sleep(30)
