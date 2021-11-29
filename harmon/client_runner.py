@@ -60,6 +60,7 @@ def main():
             print(f'Server sent unexpected JSON: {response}')'''
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
+        outputs = []
     # inputs: 
     #   worker sockets -- messages from worker to master
     #   worker.server -- messages from game server to worker
