@@ -202,6 +202,7 @@ class GameClient:
             if chunk == b'': # bad response
                 return None
             bytes_rec += len(chunk)
+            print(bytes_rec)
             chunks.append(chunk)
         chunks = b''.join(chunks)
         message = json.loads(chunks)
