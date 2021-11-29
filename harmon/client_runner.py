@@ -188,6 +188,7 @@ def main():
                             pass
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
                         message = client.receive(s)
+                        print(message)
                         try:
                             color = message['color']
                             board_state = message['board_state']
