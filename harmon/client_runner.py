@@ -71,9 +71,11 @@ def main():
     #outputs = [ worker.worker for worker in master_client.workers ]
     last_update = time.time()
     if role == 'master':
-        board_state = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR'
+        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
         color = 'black'
         client.stockfish.set_fen_position(board_state)
+        client.stockfish.make_moves_from_current_position('e2e4')
+        board_state = client.stockfish.get_fen_position()
         moves = client.gen_moves()
         print(moves)
         time.sleep(30)
@@ -190,7 +192,6 @@ def main():
                             pass
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
                         message = client.receive(s)
-                        print(message)
                         try:
                             color = message['color']
                             board_state = message['board_state']

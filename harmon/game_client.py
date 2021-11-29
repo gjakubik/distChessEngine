@@ -120,7 +120,7 @@ class GameClient:
         self.stockfish.set_fen_position(board_state)
         print(self.stockfish.get_board_visual())
         print(move)
-        self.stockfish.make_moves_from_current_position([move])
+        self.stockfish.make_moves_from_current_position(['d7d5'])
         print(self.stockfish.get_board_visual())
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
@@ -202,7 +202,6 @@ class GameClient:
             if chunk == b'': # bad response
                 return None
             bytes_rec += len(chunk)
-            print(bytes_rec)
             chunks.append(chunk)
         chunks = b''.join(chunks)
         message = json.loads(chunks)
