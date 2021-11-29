@@ -120,7 +120,7 @@ class GameClient:
         self.stockfish.set_fen_position(board_state)
         print(self.stockfish.get_board_visual())
         for i in range(depth):
-            next_move = self.stockfish.get_best_move()
+            next_move = self.stockfish.get_best_move_time(time)
             self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {next_move}')
             if next_move == None:
