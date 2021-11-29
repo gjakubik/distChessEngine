@@ -23,7 +23,7 @@ def main():
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
 
-    stockfish = Stockfish(stockfish_path)
+    stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient(role, k, id, stockfish)

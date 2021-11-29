@@ -25,7 +25,7 @@ class GameClient:
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect(('gavinjakubik.me', 5050))
+        #self.server.connect(('gavinjakubik.me', 5050))
 
         if self.role == 'master':
             self.evals = []
@@ -136,7 +136,8 @@ class GameClient:
         return self.send(self.worker, message)
 
     def gen_moves(self):
-        moves = self.stockfish.get_top_moves(self.k)
+        num_moves = self.k if self.k > 1 else 1
+        moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
     def get_worker_responses(self):
