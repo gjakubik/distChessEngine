@@ -121,13 +121,14 @@ class GameClient:
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
             self.stockfish.make_moves_from_current_position([next_move])
-            print(f'Move: {move}')
-            if move == None:
+            print(f'Move: {next_move}')
+            if next_move == None:
                 break
             print(self.stockfish.get_board_visual())
         evaluation = self.stockfish.get_evaluation()
+        print(evaluation)
         message = {'type': 'evaluation', 'move': move, 'engineId': self.engineId, 'id': id, 'move': move, 'evaluation': evaluation}
-        return self.send(self.worker, message)
+        return self.send(message, self.worker)
 
     def gen_moves(self):
         num_moves = self.k if self.k > 1 else 1
