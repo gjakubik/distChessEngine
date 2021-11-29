@@ -24,7 +24,7 @@ def main():
         print('no engine id given, this is ok if you\'re starting a master')
     try:
         master_host = sys.argv[6]
-        master_port = sys.argv[7]
+        master_port = int(sys.argv[7])
     except IndexError:
         print('no host or port given, ok if ur starting master')
 
@@ -75,7 +75,7 @@ def main():
         client.stockfish.set_fen_position(board_state)
         moves = client.gen_moves()
         print(moves)
-        time.sleep(10)
+        time.sleep(30)
 
         readable, writeable, exceptional = select.select(inputs, outputs, inputs)
         for s in readable:
