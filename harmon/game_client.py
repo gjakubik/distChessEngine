@@ -118,23 +118,13 @@ class GameClient:
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
-        self.stockfish.make_moves_from_current_position([move])
         for i in range(depth):
-            move = self.stockfish.get_best_move_time(time)    
-            correct = self.stockfish.is_move_correct(move)
-            while not correct:
-                move = self.stockfish.get_best_move_time(time)
-                correct = self.stockfish.is_move_correct(move)
+            next_move = self.stockfish.get_best_move_time(time)
+            self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {move}')
             if move == None:
                 break
-            self.stockfish.make_moves_from_current_position([move])
-            move = self.stockfish.get_best_move_time(time)
-            print(f'Move: {move}')
-            if move == None:
-                break
-            self.stockfish.make_moves_from_current_position([move])
-            print(f'Current fen string: {self.stockfish.get_fen_position}')
+            print(self.stockfish.get_board_visual())
         evaluation = self.stockfish.get_evaluation()
         message = {'type': 'evaluation', 'move': move, 'engineId': self.engineId, 'id': id, 'move': move, 'evaluation': evaluation}
         return self.send(self.worker, message)

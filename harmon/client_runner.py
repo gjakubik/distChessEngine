@@ -133,10 +133,12 @@ def main():
                         moves = client.gen_moves()
                         if client.workers:
                             client.evals = []
-                            client.worker_timestart = time.time()
                             for worker in client.workers and move in moves:
-                               response = client.assign_move(color, board_state, move, worker)
-                               if response == None:
+                                client.stockfish.set_fen_position(board_state)
+                                client.stockfish.make_moves_from_current_position([move])
+                                new_board_state = client.stockfish.get_fen_position()
+                                response = client.assign_move(color, new_board_state, move, worker)
+                                if response == None:
                                    # TODO handle socket that returns none to this
                                     pass
                         else: # just pick the first move b/c we don't have any workers 
