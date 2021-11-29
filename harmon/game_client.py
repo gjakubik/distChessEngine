@@ -118,8 +118,9 @@ class GameClient:
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
+        print(self.stockfish.get_board_visual())
         for i in range(depth):
-            next_move = self.stockfish.get_best_move_time(time)
+            next_move = self.stockfish.get_best_move
             self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {next_move}')
             if next_move == None:
