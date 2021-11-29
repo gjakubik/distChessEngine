@@ -131,7 +131,7 @@ class GameClient:
             print(self.stockfish.get_board_visual())
         evaluation = self.stockfish.get_evaluation()
         print(evaluation)
-        message = {'type': 'evaluation', 'move': move, 'engineId': self.engineId, 'id': id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
+        message = {'type': 'evaluation', 'engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return self.send(self.worker, message)
 
     def gen_moves(self):
