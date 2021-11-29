@@ -75,7 +75,7 @@ def main():
         client.stockfish.set_fen_position(board_state)
         moves = client.gen_moves()
         print(moves)
-        time.sleep(5)
+        time.sleep(10)
 
         readable, writeable, exceptional = select.select(inputs, outputs, inputs)
         for s in readable:
