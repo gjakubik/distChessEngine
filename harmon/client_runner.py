@@ -9,8 +9,8 @@ import select
 import json
 
 # globals
-DEPTH = 10 # num turns to sim
-ENGINE_TIME = 3000 # seconds
+DEPTH = 20 # num turns to sim (total, not each side)
+ENGINE_TIME = 500 # milliseconds
 
 def main():
     # parse argv
