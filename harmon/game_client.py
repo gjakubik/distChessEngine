@@ -180,6 +180,7 @@ class GameClient:
 
     def send(self, client, message):
         # send message representing message length
+        print(message)
         message = json.dumps(message)
         message = message.encode(ENCODING)
         len_message = str(len(message)).encode(ENCODING)
