@@ -20,7 +20,7 @@ export default async function startGame(username, engineId) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(message),
-            agent: httpsAgent
+            httpsAgent: httpsAgent
         });
     
         if (!resp.ok) {
