@@ -1,5 +1,5 @@
 const net = require('net');
-const APIReq = require('./utils/APIReq');
+const { APIReq } = require('./utils/APIReq');
 
 const handleConnection = (conn) => {    
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
@@ -15,6 +15,7 @@ const handleConnection = (conn) => {
         // Send the request to the API
         APIReq(newData['endpoint'], newData['method'], newData)
             .then((resp) => {
+                console.log(resp)
                 const strResp = JSON.stringify(resp);
                 conn.write(strResp.length.toString().padEnd(64 - strResp.length.toString().length, " "));  
                 conn.write(JSON.stringify(resp));
