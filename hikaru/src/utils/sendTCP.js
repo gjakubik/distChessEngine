@@ -1,8 +1,8 @@
 const net       = require('net');
 const constants = require('../constants');
 
-const sendTCP = async (message, timeout) => {
-    return new Promise(async (resolve, reject) => {
+const sendTCP =  (message, timeout) => {
+    return new Promise((resolve, reject) => {
         
         const socket = new net.Socket();
 
