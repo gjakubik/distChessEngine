@@ -154,6 +154,7 @@ def main():
                         except KeyError and TypeError:
                             print(f'Worker sent bad JSON: {message}')
                             client.evals.append((None, None))
+                            continue
                         if len(client.evals == k):
                             # we have all of our move evaluations and need to respond to the server
                             move = client.eval_responses(client.evals, color)
