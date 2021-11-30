@@ -1,5 +1,5 @@
 const { API_BASE_URL } = require('../constants');
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
 const APIReq = async (endpoint, method, message) => {
     // function to register server
