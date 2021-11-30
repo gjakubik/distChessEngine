@@ -22,11 +22,11 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
-    '''try:
+    try:
         master_host = sys.argv[6]
         master_port = int(sys.argv[7])
     except IndexError:
-        print('no host or port given, ok if ur starting master')'''
+        print('no host or port given, ok if ur starting master')
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
@@ -37,20 +37,32 @@ def main():
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+        message = {
+            'method': 'POST',
+            'endpoint': '/server', 
+            'role': 'master', 
+            'host': client.host, 
+            'port': client.port, 
+            'numWorkers': k
+        }
         response = client.server_send(client.server, message)
         try:
-            client.engineId = response['serverId']
+            client.engineId = response['engineId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+            print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
     elif role == "worker":
         # master address from server
         client.engineId = engineId 
-        message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
+        message = {
+            'method': 'POST',
+            'endpoint': '/server', 
+            'role': 'worker', 
+            'id': id # this is NOT a gameID
+        }
         response = client.server_send(client.server, message)
         try:
             master_host = response['host']
@@ -83,7 +95,7 @@ def main():
 
             # TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
-                response = client.worker_update()
+                response = client.workers_update()
                 # TODO: error check 
                 last_update = time.time()
 
@@ -100,17 +112,19 @@ def main():
                     elif s is client.server: # received message from server -- it's engine's turn to make a move
                         message = client.receive(s)
                         try:
-                            board_state = message['state']
+                            gameId = message['gameId']
+                            board_state = message['board_state']
                             move_num = message['moveNum']
                             color = message['color']
                         except KeyError:
                             print(f'Server sent bad JSON: {message}')
+                        client.gameId = gameId
                         client.stockfish.set_fen_position(board_state)
                         moves = client.gen_moves()
                         if client.workers:
                             client.evals = []
                             for worker, move in zip(client.workers, moves):
-                                response = client.assign_move(color, board_state, move, worker)
+                                response = client.assign_move(gameId, color, board_state, move, worker)
                                 if response == None:
                                    # TODO handle socket that returns none to this
                                     pass
@@ -119,12 +133,14 @@ def main():
                             # make move and respond to server
                             client.stockfish.make_moves_from_current_position([move])
                             message = {
-                                'endpont': '/move',
+                                'method': 'POST',
+                                'endpoint': '/move',
                                 'engineId': client.engineId,
+                                'gameId': client.gameId,
                                 'state': client.stockfish.get_fen_position(),
                                 'moveNum': move_num
                             }
-                            print(f'Message: \n {message}')
+                            print(f'Message: {message}')
                             response = client.send(client.game_server, message)
                             if response == None:
                                 # TODO handle dead game server
@@ -144,14 +160,22 @@ def main():
                             # we have all of our move evaluations and need to respond to the server
                             move = client.eval_responses(client.evals, color)
                             client.stockfish.make_moves_from_current_position([move])
-                            message = {'endpoint': '/move', 'state': client.stockfish.get_fen_position(), 'gameId': client.game_id, 'moveNum': move_num}
+                            message = {
+                                'method': 'POST', 
+                                'endpoint': '/move', 
+                                'state': client.stockfish.get_fen_position(), 
+                                'engineId': client.engineId, 
+                                'gameId': client.gameId, 
+                                'moveNum': move_num
+                            }
                 elif role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
                     #if s is client.listener: # idk if this is how i wanna implement htis
                         #pass
                     if s is client.server: # some sort of election message
-                        continue
                         message = client.receive(s)
+                        print(message)
+                        continue
                         try:
                             type = message['type']
                         except KeyError:
@@ -164,11 +188,13 @@ def main():
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
                         message = client.receive(s)
                         try:
+                            gameId = message['gameId']
                             color = message['color']
                             board_state = message['board_state']
                             move = message['move']
                         except KeyError:
                             print(f'Master sent bad formed JSON: {message}')
+                        client.gameId = gameId
                         response = client.eval_move(board_state, move, DEPTH, ENGINE_TIME)
                         # TODO: error check this response 
             for s in writeable: 
