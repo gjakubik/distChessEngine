@@ -38,7 +38,6 @@ class GameClient:
             self.host = socket.gethostbyname(hostname)
             self.port = listener.getsockname()[1]
             listener.listen(5)
-            print(f'Listening on port: {self.port}')
             self.listener = listener # socket that will communicate with the workers
             
         else: 
