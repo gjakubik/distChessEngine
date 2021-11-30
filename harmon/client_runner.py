@@ -56,10 +56,11 @@ def main():
     elif role == "worker":
         # master address from server
         client.engineId = engineId 
-        '''message = {
-            'method': 'POST',
-            'endpoint': '/server', 
+        message = {
+            'method': 'GET',
+            'endpoint': f'/server/{client.engineId}', 
             'role': 'worker', 
+            'engineId': client.engineId,
             'id': id # this is NOT a gameID
         }
         response = client.server_send(client.server, message)
@@ -68,7 +69,7 @@ def main():
             master_port = response['port']
             client.worker.connect((master_host, master_port))
         except KeyError:
-            print(f'Server sent unexpected JSON: {response}')'''
+            print(f'Server sent unexpected JSON: {response}')
         client.engineId = engineId 
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
