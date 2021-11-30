@@ -133,7 +133,7 @@ app.get('/server/:engineId', async (req, res) => {
 
 // starting the server
 https.createServer({
-    key: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/fullchain.pem'),
+    key: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/cert.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/privkey.pem')
 }, app).listen(5050, () => {
     console.log('listening on port https://gavinjakubik.me:5050');
