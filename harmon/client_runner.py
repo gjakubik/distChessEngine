@@ -139,7 +139,7 @@ def main():
                                 'engineId': client.engineId,
                                 'gameId': client.gameId,
                                 'state': client.stockfish.get_fen_position(),
-                                'moveNum': move_num
+                                'moveNum': int(move_num) + 1
                             }
                             print(f'Message: {message}')
                             response = client.send(client.game_server, message)
@@ -167,7 +167,7 @@ def main():
                                 'state': client.stockfish.get_fen_position(), 
                                 'engineId': client.engineId, 
                                 'gameId': client.gameId, 
-                                'moveNum': move_num
+                                'moveNum': int(move_num) + 1
                             }
                 elif role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
