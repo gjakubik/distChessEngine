@@ -5,6 +5,7 @@ const APIReq = async (endpoint, method, message) => {
     // function to register server
     const resp = fetch(API_BASE_URL + endpoint, {
         method: method,
+        mode: 'same-origin',
         headers: {
             'Content-Type': 'application/json'
         },
