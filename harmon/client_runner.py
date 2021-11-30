@@ -22,11 +22,11 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
-    '''try:
+    try:
         master_host = sys.argv[6]
         master_port = int(sys.argv[7])
     except IndexError:
-        print('no host or port given, ok if ur starting master')'''
+        print('no host or port given, ok if ur starting master')
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
@@ -37,13 +37,13 @@ def main():
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+        message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
             client.engineId = response['serverId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+            print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
