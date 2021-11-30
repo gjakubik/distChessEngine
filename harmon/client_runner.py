@@ -32,7 +32,6 @@ def main():
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient(role, k, id, stockfish)
-    client.engineId = engineId 
     
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
@@ -70,6 +69,7 @@ def main():
             client.worker.connect((master_host, master_port))
         except KeyError:
             print(f'Server sent unexpected JSON: {response}')'''
+        client.engineId = engineId 
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
