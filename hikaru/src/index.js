@@ -117,8 +117,8 @@ app.post('/server', async (req, res) => {
 
 // starting the server
 https.createServer({
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
+    key: fs.readFileSync('/usr/lib/ssl/private/ssl-cert-snakeoil.key'),
+    cert: fs.readFileSync('/usr/lib/ssl/certs/GTS_Root_R1.pem')
 }, app).listen(5050, () => {
     console.log('listening on port https://gavinjakubik.me:5050');
 })
