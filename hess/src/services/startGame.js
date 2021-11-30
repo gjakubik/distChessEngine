@@ -16,6 +16,7 @@ export default async function startGame(username, engineId) {
         // function to register server
         const resp = await fetch(API_BASE_URL + endpoint, {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json'
             },

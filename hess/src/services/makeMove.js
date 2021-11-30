@@ -16,6 +16,7 @@ export default async function makeMove(gameId, state, moveNum) {
         // function to register server
         const resp = await fetch(API_BASE_URL + endpoint, {
             method: 'POST',
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json'
             },
