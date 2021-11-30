@@ -21,40 +21,17 @@ const create = async (gameId, state, moveNum) => {
             myNewObject.set('state', state);
             myNewObject.set('moveNum', moveNum);
         } else {
-            console.log("Failed to find server");
+            console.log("Failed to find game");
             return "";
         }
         
         const result = await myNewObject.save();
         console.log(result);
-        return result.id;
+        return result;
     } catch (error) {
         console.log(error);
         return "";
     }
 };
 
-// Return game object on success
-const get = async (gameId) => {
-    const Game = Parse.Object.extend('Game');
-    const query = new Parse.Query(Game);
-    
-    try {
-        const results = await query.equalTo("objectId", gameId);
-        
-        const gameObj = {
-            "username": object.get('username'),
-            "winner": object.get('winner'),
-            "engine1": object.get('engine1').id,
-            "engine2": object.get('engine2').id
-        }
-
-        return gameObj;
-        
-    } catch (error) {
-        console.error('Error while fetching Game', error);
-        return null;
-    }
-};
-
-module.exports = { create, get }
+module.exports = { create }

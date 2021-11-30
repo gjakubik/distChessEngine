@@ -5,6 +5,7 @@ const https   = require('https');
 const net     = require('net');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
+const move    = require('./utils/parseMove');
 const tcp     = require('./utils/sendTCP');
 
 // Initialize express app
@@ -65,7 +66,7 @@ app.post('/game', async (req, res) => {
         "game_id": gameId
     }
 
-    const resp = await tcp.sendTCP(servObj.host, servObj.port, message, 5000)
+    const resp = await tcp.sendTCP(message, 5000)
         .catch((error) => {
             err = error
         });
@@ -85,21 +86,25 @@ app.post('/game', async (req, res) => {
 });
 
 app.post('/move', (req, res) => {
-    // TODO: Put user move in parse
+    try {
+        // TODO: Put user move in parse
+        const playerMove = move.create(req.body.gameId, req.body.state, req.body.moveNum);
+        // TODO: Send move to engine
+        const engineResp = await tcp.sendTCP(req.body);
 
-    // TODO: Send move to engine
-
-    // TODO: Get response from engine
-
-    // TODO: Put engine move in parse
-
-    // TODO: Send engine move as response to user
+        // TODO: Put engine move in parse
+        const engineMove = move.create(req.body.gameId, engineResp.state, engineResp.moveNum);
+        // TODO: Send engine move as response to user
+        res.status(200).send(engineResp);
+    } catch (err) {
+        res.status(400).send("Error sending move to server: ", err);
+    }
+    
 
 });
 
 app.post('/server', async (req, res) => {
     // Make sure request is valid
-    console.log(req);
     try {
         assert(true, req.body.host);
         assert(true, req.body.port);
@@ -113,6 +118,17 @@ app.post('/server', async (req, res) => {
     const engineId = await server.create(req.body.host, req.body.port, req.body.numWorkers);
     // Respond with engineId
     res.status(200).send({"engineId": engineId});
+})
+
+app.get('/server/:engineId', async (req, res) => {
+    const resp = await server.get(req.params.engineId);
+
+    if (!resp) {
+        res.status(400).send("Could not find info for engineId: ", req.params.engineId);
+        return;
+    }
+
+    res.status(200).send(resp);
 })
 
 // starting the server
