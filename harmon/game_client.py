@@ -5,7 +5,6 @@ import sys
 import select
 import time
 import socket
-import requests
 import json
 from stockfish import Stockfish
 import math
@@ -19,18 +18,17 @@ GAME_SERVER = 'https://gavinjakubik.me:5050'
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, project, owner, role, k, id, stockfish):
-        self.project = project
+    def __init__(self, role, k, id, stockfish):
         self.role = role
-        self.owner = owner
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect(('gavinjakubik.me', 5050))
+        #self.server.connect(('gavinjakubik.me', 5050))
 
         if self.role == 'master':
-            self.workers = [] # list of GameClients
+            self.evals = []
+            self.workers = [] # list of sockets
             # tcp listener to communicate with worker clients
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -51,11 +49,14 @@ class GameClient:
 
     def workers_update(self):
         message = {
-            'owner': 'master',
-            'engineId': self.engineId,
-            'type': 'workers_update',
+            'endpoint': f'/server/{self.engineId}',
+            'host': self.host,
+            'port': self.port,
+            'role': self.role,
+            'numWorkers': len(self.workers),
             'workers': self.workers
         }
+        return self.server_send(message)
 
     def election_vote(self):
         # worker client votes in election to decide new master client
@@ -65,7 +66,8 @@ class GameClient:
             "id": self.id,
         }
         # TODO: handle timeouts
-        response = self.send(self.server, message)
+        response = self.server_send(self.server, message)
+        return response
 
     def make_master(self, workers):
         # gets list of workers passed in from servere
@@ -115,24 +117,26 @@ class GameClient:
 
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
-        worker_fish = Stockfish()
-        worker_fish.set_fen_position(board_state)
-        worker_fish.make_moves_from_current_position([move])
+        self.stockfish.set_fen_position(board_state)
+        print(self.stockfish.get_board_visual())
+        print(move)
+        self.stockfish.make_moves_from_current_position(['d7d5'])
+        print(self.stockfish.get_board_visual())
         for i in range(depth):
-            move = worker_fish.get_best_move_time(time)
-            if move == None:
+            next_move = self.stockfish.get_best_move_time(time)
+            self.stockfish.make_moves_from_current_position([next_move])
+            print(f'Move: {next_move}')
+            if next_move == None:
                 break
-            worker_fish.make_moves_from_current_position([move])
-            move = worker_fish.get_best_move_time(time)
-            if move == None:
-                break
-            worker_fish.make_moves_from_current_position([move])
-
-        evaluation = worker_fish.get_evaluation()
-        return (move, evaluation)
+            print(self.stockfish.get_board_visual())
+        evaluation = self.stockfish.get_evaluation()
+        print(evaluation)
+        message = {'type': 'evaluation', 'engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
+        return self.send(self.worker, message)
 
     def gen_moves(self):
-        moves = self.stockfish.get_top_moves(self.k)
+        num_moves = self.k if self.k > 1 else 1
+        moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
     def get_worker_responses(self):
@@ -151,7 +155,7 @@ class GameClient:
             "board_state": board_state,
             "move": move
         }
-        response = self.send(message, worker)
+        response = self.send(worker, message)
         return response # either will be None or OK
 
     def server_send(self, client, message):
@@ -193,9 +197,7 @@ class GameClient:
         except ValueError:
             print("value error")
             return False
-        print(message_len)
-        while bytes_rec <= message_len:
-            print(f'bytes_rec: {bytes_rec}')
+        while bytes_rec < message_len:
             chunk = client.recv(message_len - bytes_rec)
             if chunk == b'': # bad response
                 return None
@@ -223,63 +225,4 @@ class GameClient:
         s.close()
         return time.time()
 
-    # establish a connection with the game server via nameserver
-    def game_server_connect(self, project):
-        # send post request of form: host: MY HOST NAME, port: MY PORT, numWorkers: numWorkers
-        headers = {'Content-Type': 'application/json'} 
-        message = {'host': self.host, 'port': self.port, 'numWorkers': self.k}
-        response = requests.post(GAME_SERVER+'/server', headers=headers, data=json.dumps(message), verify=False)
-        return response
-
-    def ns_worker_connect(self, project):
-        ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
-        ns_sock.connect(NAME_SERVER, NS_PORT)
-        # download service info
-        req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode(ENCODING))
-        chunks = []
-        while True:
-            chunk = ns_sock.recv(1024)
-            if not chunk or chunk == b'':
-                break
-            chunks.append(chunk)
-        ns_sock.close()
-        data = b''.join(chunks)
-        data = data.decode(ENCODING)
-        data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
-        json_data = json.loads(data)
-        host, port = '', 0
-        for el in json_data:
-            if el['project'] == project and el['type'] == 'chessEngine-worker':
-                # create a socket for the worker, add it to workers list
-                host = el['name']
-                port = el['port']
-                self.workers.append(self.connect(host, port))
-
-    def ns_master_connect(self, project):
-        ns_sock = socket.socket(socket.AF_NET, socket.SOCK_STREAM)
-        ns_sock.connect(NAME_SERVER, NS_PORT)
-        # download service info
-        req = f'GET /query.json HTTP/1.1\r\nHost:{NAME_SERVER}:{NS_PORT}\r\nAccept: application/json\r\n\r\n'
-        ns_sock.sendall(req.encode(ENCODING))
-        chunks = []
-        while True:
-            chunk = ns_sock.recv(1024)
-            if not chunk or chunk == b'':
-                break
-            chunks.append(chunk)
-        ns_sock.close()
-        data = b''.join(chunks)
-        data = data.decode(ENCODING)
-        data = data.split('\n', 7) # in hw first 7 was all http header stuff, hopefully the same here ?
-        json_data = json.loads(data)
-        host, port, recent = '', 0, 0
-        for el in json_data:
-            if el['project'] == project and el['type'] == 'chessEngine-worker':
-                # create a socket for the master, save it as self.master
-                if el['lastheardfrom'] > recent:
-                    host = el['name']
-                    port = el['port']
-                    recent = el['lastheardfrom']
-                break
-        self.master = self.connect(host, port)
+    
