@@ -151,10 +151,8 @@ def main():
                             move = message['move']
                             evaluation = message['evaluation']
                             client.evals.append((move, evaluation))
-                        except KeyError:
+                        except KeyError and TypeError:
                             print(f'Worker sent bad JSON: {message}')
-                            client.workers.remove(s)
-                            s.close()
                             client.evals.append((None, None))
                         if len(client.evals == k):
                             # we have all of our move evaluations and need to respond to the server
@@ -192,7 +190,7 @@ def main():
                             color = message['color']
                             board_state = message['board_state']
                             move = message['move']
-                        except KeyError:
+                        except KeyError and TypeError:
                             print(f'Master sent bad formed JSON: {message}')
                         client.gameId = gameId
                         response = client.eval_move(board_state, move, DEPTH, ENGINE_TIME)
