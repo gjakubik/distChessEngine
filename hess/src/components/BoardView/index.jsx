@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import Chess from 'chess.js';
 import { Chessboard } from 'react-chessboard';
+import makeMove from '../../services/makeMove';
 
 import Box from '@mui/material/Box';
 import Stack      from '@mui/material/Stack';
@@ -17,6 +18,8 @@ export default function BoardView({ boardWidth }) {
     const [engineId, setEngineId]                 = useState("");
     const [username, setUsername]                 = useState("");
     const [gameEnd, setGameEnd]                   = useState(false);
+    const [gameId, setGameId]                     = useState("");
+    const [moveNum, setMoveNum]                   = useState(0);
 
     function safeGameMutate(modify) {
         setGame((g) => {
@@ -41,7 +44,7 @@ export default function BoardView({ boardWidth }) {
         });
       }
     
-    function onDrop(sourceSquare, targetSquare) {
+    async function onDrop(sourceSquare, targetSquare) {
         const gameCopy = { ...game };
         const move = gameCopy.move({
             from: sourceSquare,
@@ -49,17 +52,22 @@ export default function BoardView({ boardWidth }) {
             promotion: 'q' // always promote to a queen for example simplicity
         });
         setGame(gameCopy);
+        setMoveNum(moveNum + 1);
     
         // illegal move
         if (move === null) return false;
     
-        setTimeout(makeRandomMove, 200);
+        const resp = await makeMove(gameId, game, moveNum);
+
+        setGame(resp.game);
+        setMoveNum(resp.moveNum);
         return true;
       }
 
     const resetHandler = () => {
         safeGameMutate((game) => {
             game.reset();
+            setMoveNum(0);
         });
         chessboardRef.current.clearPremoves();
     };

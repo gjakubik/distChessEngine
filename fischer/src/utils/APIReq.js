@@ -8,15 +8,20 @@ const APIReq = async (endpoint, method, message) => {
         rejectUnauthorized: false,
     });
     // function to register server
-    const resp = await fetch(API_BASE_URL + endpoint, {
+    var opts = {
         method: method,
         mode: 'same-origin',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(message),
         agent: httpsAgent
-    });
+    };
+
+    if ( method != 'GET' ) {
+        opts = {...opts, body: JSON.stringify(message)}
+    }
+
+    const resp = await fetch(API_BASE_URL + endpoint, opts);
 
     if (!resp.ok) {
         console.log()
