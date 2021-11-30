@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import Chess from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import makeMove from '../../services/makeMove';
+import startGame from '../../services/startGame';
 
 import Box from '@mui/material/Box';
 import Stack      from '@mui/material/Stack';
@@ -45,6 +46,11 @@ export default function BoardView({ boardWidth }) {
       }
     
     async function onDrop(sourceSquare, targetSquare) {
+        // illegal move
+        if (moveNum == 0) {
+            const gameId = await startGame(username, engineId);
+            setGameId(gameId);
+        }
         const gameCopy = { ...game };
         const move = gameCopy.move({
             from: sourceSquare,
@@ -53,8 +59,6 @@ export default function BoardView({ boardWidth }) {
         });
         setGame(gameCopy);
         setMoveNum(moveNum + 1);
-    
-        // illegal move
         if (move === null) return false;
     
         const resp = await makeMove(gameId, game, moveNum);
@@ -83,6 +87,7 @@ export default function BoardView({ boardWidth }) {
         safeGameMutate((game) => {
             game.reset();
         });
+        setMoveNum(0);
         chessboardRef.current.clearPremoves();
         setGameEnd(false);
     };

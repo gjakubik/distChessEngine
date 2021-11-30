@@ -1,17 +1,17 @@
 import https from 'https';
 
 const API_BASE_URL = 'https://gavinjakubik.me:5050/'
-const endpoint = 'move/'
+const endpoint = 'game/'
 // This function will send the users move to the API and return the response move
-export default async function makeMove(gameId, state, moveNum) {
+export default async function startGame(username, engineId) {
     try {
         const httpsAgent = new https.Agent({
             rejectUnauthorized: false,
         });
         const message = {
-            "gameId": gameId,
-            "state": state,
-            "moveNum": moveNum
+            "username": username,
+            "engine1Id": engineId,
+            "engine2Id": ""
         };
         // function to register server
         const resp = await fetch(API_BASE_URL + endpoint, {
@@ -28,7 +28,7 @@ export default async function makeMove(gameId, state, moveNum) {
             return {}
         }
     
-        return resp.json()
+        return resp.json().gameId
     } catch (err) {
         console.log(err);
         return {}
