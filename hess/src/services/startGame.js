@@ -1,7 +1,7 @@
 import https from 'https';
 
-const API_BASE_URL = 'https://gavinjakubik.me:5050/'
-const endpoint = 'game/'
+const API_BASE_URL = 'https://gavinjakubik.me:5050'
+const endpoint = '/game'
 // This function will send the users move to the API and return the response move
 export default async function startGame(username, engineId) {
     try {
@@ -19,7 +19,7 @@ export default async function startGame(username, engineId) {
             method: 'POST',
             mode: 'no-cors',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'text/plain'
             },
             body: JSON.stringify(message),
             httpsAgent: httpsAgent
