@@ -67,7 +67,6 @@ def main():
         try:
             master_host = response['host']
             master_port = response['port']
-            client.worker.connect((master_host, master_port))
         except KeyError:
             print(f'Server sent unexpected JSON: {response}')
         client.engineId = engineId 
