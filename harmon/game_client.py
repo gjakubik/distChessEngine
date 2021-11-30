@@ -14,7 +14,8 @@ import math
 NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
 HEADER_SIZE = 64
-GAME_SERVER = 'https://gavinjakubik.me:5050'
+GAME_SERVER = 'https://gavinjakubik.me'
+GAME_SERVER_PORT = 5050
 ENCODING = 'utf8'
 
 class GameClient:
@@ -24,7 +25,7 @@ class GameClient:
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #self.server.connect(('gavinjakubik.me', 5050))
+        self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
 
         if self.role == 'master':
             self.evals = []
@@ -49,7 +50,7 @@ class GameClient:
 
     def workers_update(self):
         message = {
-            'endpoint': f'/server/{self.engineId}',
+            'endpoint': f'server/{self.engineId}',
             'host': self.host,
             'port': self.port,
             'role': self.role,
@@ -152,12 +153,13 @@ class GameClient:
         moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
-    def assign_move(self, color, board_state, move, worker):
+    def assign_move(self, gameId, color, board_state, move, worker):
         # move: representation of starting move assigned to this worker
         # worker: the socket the master has assigned to this worker
         # TODO: create & send message to WORKER telling them to evaluate MOVE
         # create json message
         message = {
+            'gameId': gameId,
             "type": "move",
             "color": color,
             "board_state": board_state,
