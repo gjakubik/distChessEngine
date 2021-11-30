@@ -102,25 +102,39 @@ class GameClient:
         # TODO check the data structure of this stuff
         # evals is a list of (move, evaluation) tuples
         # returns a tuple of (move, evaluation)
-        max_cp = (None, (-1) * math.inf)
-        best_mate = (None, math.inf)
-        for e in evals:
-            if e[1][0] > max_cp[1]: 
-                max_cp = (e[0], e[1][0])
-            if math.abs(e[1][1]) < best_mate[1]:
-                best_mate = (e[0], e[1][1])
-        
+        if color == 'white': 
+            # positive is favorable (advantage white)
+            max_cp = (None, (-1) * math.inf)
+            best_mate = (None, math.inf)
+            for e in evals:
+                if e[1]['type'] == 'cp': # centipawns eval
+                    if e[1]['value'] > max_cp[1]:
+                        max_cp = (e[0], e[1]['value']) 
+                elif e[1]['type'] == 'mate':
+                    if e[1]['value'] < best_mate[1] and e[1]['value'] > 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
+                        best_mate = (e[0], e[1]['value'])
+        else:
+            # negative is favorable (advantage black)
+            max_cp = (None, math.inf)
+            best_mate = (None, (-1) * math.inf)
+            for e in evals:
+                if e[1]['type'] == 'cp':
+                    if e[1]['value'] < max_cp[1]: 
+                        max_cp = (e[0], e[1]['value'])
+                elif e[1]['type'] == 'mate':
+                    if e[1]['value'] > best_mate[1] and e[1]['value'] < 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
+                        best_mate = (e[0], e[1]['value'])
         if math.abs(best_mate[1]) <= 3:
             return best_mate
         else:
             return max_cp
 
     def eval_move(self, board_state, move, depth, time):
-        # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
+        # have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
         print(self.stockfish.get_board_visual())
         print(move)
-        self.stockfish.make_moves_from_current_position(['d7d5'])
+        self.stockfish.make_moves_from_current_position([move])
         print(self.stockfish.get_board_visual())
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
@@ -130,7 +144,6 @@ class GameClient:
                 break
             print(self.stockfish.get_board_visual())
         evaluation = self.stockfish.get_evaluation()
-        print(evaluation)
         message = {'type': 'evaluation', 'engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return self.send(self.worker, message)
 
@@ -138,11 +151,6 @@ class GameClient:
         num_moves = self.k if self.k > 1 else 1
         moves = self.stockfish.get_top_moves(num_moves)
         return moves
-
-    def get_worker_responses(self):
-        # TODO: select between the workers to read back their responses 
-        # return list of tuples with move and rating 
-        pass
 
     def assign_move(self, color, board_state, move, worker):
         # move: representation of starting move assigned to this worker
