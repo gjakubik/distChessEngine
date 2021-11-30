@@ -17,10 +17,10 @@ const APIReq = async (endpoint, method, message) => {
         agent: httpsAgent
     };
 
-    if (message) {
+    if ( method != 'GET' ) {
         opts = {...opts, body: JSON.stringify(message)}
     }
-    
+
     const resp = await fetch(API_BASE_URL + endpoint, opts);
 
     if (!resp.ok) {
