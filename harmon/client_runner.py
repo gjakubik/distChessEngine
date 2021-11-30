@@ -67,7 +67,6 @@ def main():
         try:
             master_host = response['host']
             master_port = response['port']
-            client.worker.connect((master_host, master_port))
         except KeyError:
             print(f'Server sent unexpected JSON: {response}')
         client.engineId = engineId 
@@ -152,11 +151,10 @@ def main():
                             move = message['move']
                             evaluation = message['evaluation']
                             client.evals.append((move, evaluation))
-                        except KeyError:
+                        except KeyError and TypeError:
                             print(f'Worker sent bad JSON: {message}')
-                            client.workers.remove(s)
-                            s.close()
                             client.evals.append((None, None))
+                            continue
                         if len(client.evals == k):
                             # we have all of our move evaluations and need to respond to the server
                             move = client.eval_responses(client.evals, color)
@@ -193,7 +191,7 @@ def main():
                             color = message['color']
                             board_state = message['board_state']
                             move = message['move']
-                        except KeyError:
+                        except KeyError and TypeError:
                             print(f'Master sent bad formed JSON: {message}')
                         client.gameId = gameId
                         response = client.eval_move(board_state, move, DEPTH, ENGINE_TIME)

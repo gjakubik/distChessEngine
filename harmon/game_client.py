@@ -180,6 +180,7 @@ class GameClient:
 
     def send(self, client, message):
         # send message representing message length
+        print(message)
         message = json.dumps(message)
         message = message.encode(ENCODING)
         len_message = str(len(message)).encode(ENCODING)
@@ -205,7 +206,7 @@ class GameClient:
         try:
             message_len = int(message_len.decode(ENCODING))
         except ValueError:
-            print("value error")
+            print(f'value error: {message_len}')
             return False
         while bytes_rec < message_len:
             chunk = client.recv(message_len - bytes_rec)
