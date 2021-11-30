@@ -10,7 +10,9 @@ const tcp     = require('./utils/sendTCP');
 
 // Initialize express app
 const app = express();
-app.use(express.json());
+app.use(express.json({
+    type: ['application/json', 'text/plain']
+  }));
 
 // Set view engine for home route html rendering
 app.set('view engine', 'pug');
