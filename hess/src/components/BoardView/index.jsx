@@ -22,6 +22,7 @@ export default function BoardView({ boardWidth }) {
     const [gameEnd, setGameEnd]                   = useState(false);
     const [gameId, setGameId]                     = useState("");
     const [moveNum, setMoveNum]                   = useState(0);
+    const [isLoading, setIsLoading]               = useState(false);
 
     function safeGameMutate(modify) {
         setGame((g) => {
@@ -61,9 +62,10 @@ export default function BoardView({ boardWidth }) {
         setGame(gameCopy);
         setMoveNum(moveNum + 1);
         if (move === null) return false;
-    
-        const resp = await makeMove(gameId, game, moveNum);
 
+        setIsLoading(true);
+        const resp = await makeMove(gameId, game, moveNum);
+        console.log(resp);
         try {
             safeGameMutate((game) => {
                 game.move(resp.state);
@@ -74,6 +76,7 @@ export default function BoardView({ boardWidth }) {
         }
         
         setMoveNum(resp.moveNum);
+        setIsLoading(false);
         return true;
       }
 

@@ -13,6 +13,7 @@ export default async function startGame(username, engineId) {
             "engine1Id": engineId,
             "engine2Id": ""
         };
+        console.log(message);
         // function to register server
         const resp = await fetch(API_BASE_URL + endpoint, {
             method: 'POST',
