@@ -14,8 +14,8 @@ import math
 NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
 HEADER_SIZE = 64
-GAME_SERVER = 'https://gavinjakubik.me'
-GAME_SERVER_PORT = 5050
+GAME_SERVER = 'gavinjakubik.me'
+GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
