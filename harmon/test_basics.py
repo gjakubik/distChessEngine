@@ -9,8 +9,8 @@ import select
 import json
 
 # globals
-DEPTH = 20 # num turns to sim (total, not each side)
-ENGINE_TIME = 500 # milliseconds
+DEPTH = 10 # num turns to sim
+ENGINE_TIME = 3 # seconds
 
 def main():
     # parse argv
@@ -22,30 +22,22 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
-    '''try:
-        master_host = sys.argv[6]
-        master_port = int(sys.argv[7])
-    except IndexError:
-        print('no host or port given, ok if ur starting master')'''
-
-    stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
+        
+    stockfish = Stockfish(stockfish_path)
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
-    client = game_client.GameClient(role, k, id, stockfish)
-    client.engineId = engineId 
-    
+    client = game_client.GameClient('master', k, id, stockfish)
+
     if role == "master":
-        print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+        message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
             client.engineId = response['serverId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+            print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
-        outputs = []
 
     elif role == "worker":
         # master address from server
@@ -58,9 +50,8 @@ def main():
             client.worker.connect((master_host, master_port))
         except KeyError:
             print(f'Server sent unexpected JSON: {response}')
-        client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
-        outputs = []
+
     # inputs: 
     #   worker sockets -- messages from worker to master
     #   worker.server -- messages from game server to worker
@@ -73,13 +64,13 @@ def main():
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
-            '''for worker in master_client.workers:
+            for worker in master_client.workers:
                 if worker.role == 'master':
                     master_client = worker
                     master_client.workers.remove(worker)
                     inputs = [worker.worker for worker in master_client.workers] + [master_client.listener] + [worker.server for worker in master_client.workers ] + [master_client.server]
                     #outputs = outputs = [ worker.worker for worker in master_client.workers ]
-                    break'''
+                    break
 
             # TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
@@ -109,9 +100,10 @@ def main():
                         moves = client.gen_moves()
                         if client.workers:
                             client.evals = []
-                            for worker, move in zip(client.workers, moves):
-                                response = client.assign_move(color, board_state, move, worker)
-                                if response == None:
+                            client.worker_timestart = time.time()
+                            for worker in client.workers and move in moves:
+                               response = client.assign_move(color, board_state, move, worker)
+                               if response == None:
                                    # TODO handle socket that returns none to this
                                     pass
                         else: # just pick the first move b/c we don't have any workers 
@@ -125,7 +117,7 @@ def main():
                                 'moveNum': move_num
                             }
                             print(f'Message: \n {message}')
-                            response = client.send(client.game_server, message)
+                            response = master_client.send(master_client.game_server, message)
                             if response == None:
                                 # TODO handle dead game server
                                 pass
@@ -147,10 +139,9 @@ def main():
                             message = {'endpoint': '/move', 'state': client.stockfish.get_fen_position(), 'gameId': client.game_id, 'moveNum': move_num}
                 elif role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
-                    #if s is client.listener: # idk if this is how i wanna implement htis
-                        #pass
-                    if s is client.server: # some sort of election message
-                        continue
+                    if s is client.listener: # idk if this is how i wanna implement htis
+                        pass
+                    elif s is client.server: # some sort of election message
                         message = client.receive(s)
                         try:
                             type = message['type']
