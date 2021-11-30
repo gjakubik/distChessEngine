@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 export default function BoardView({ boardWidth }) {
     const chessboardRef                           = useRef();
     const [game, setGame]                         = useState(new Chess());
+    console.log(game.fen());
     const [arrows, setArrows]                     = useState([]);
     const [boardOrientation, setBoardOrientation] = useState('white');
     const [engineId, setEngineId]                 = useState("");
