@@ -23,7 +23,7 @@ const create = async (host, port, numWorkers) => {
 // Return server response object on success, null on failure
 const get = async (serverId) => {
     const Server = Parse.Object.extend('Server');
-    const query = new Parse.Query(Server);\
+    const query = new Parse.Query(Server);
     console.log(serverId);
     try {
         const result = await query.get(serverId);
