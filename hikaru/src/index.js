@@ -133,8 +133,8 @@ app.get('/server/:engineId', async (req, res) => {
 
 // starting the server
 https.createServer({
-    key: fs.readFileSync('/usr/lib/ssl/private/ssl-cert-snakeoil.key'),
-    cert: fs.readFileSync('/usr/lib/ssl/certs/ssl-cert-snakeoil.pem')
+    key: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/fullchain.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/privkey.pem')
 }, app).listen(5050, () => {
     console.log('listening on port https://gavinjakubik.me:5050');
 })

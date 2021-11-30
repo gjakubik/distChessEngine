@@ -63,7 +63,15 @@ export default function BoardView({ boardWidth }) {
     
         const resp = await makeMove(gameId, game, moveNum);
 
-        setGame(resp.game);
+        try {
+            safeGameMutate((game) => {
+                game.move(resp.state);
+            });
+        } catch (err) {
+            console.log("Calling the engine failed: %s\nPlaying random move", err);
+            makeRandomMove();
+        }
+        
         setMoveNum(resp.moveNum);
         return true;
       }
