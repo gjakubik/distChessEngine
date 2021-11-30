@@ -1,4 +1,5 @@
 const { API_BASE_URL } = require('../constants');
+const https = require('https');
 const fetch = require('cross-fetch');
 
 const APIReq = async (endpoint, method, message) => {
