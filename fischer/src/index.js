@@ -13,9 +13,14 @@ const handleConnection = (conn) => {
         console.log('connection sending length to %s: %s', remoteAddress, d.length.toString().padEnd((64 - d.length.toString().length), "*"));
 
         // Send the request to the API
-        resp = await APIReq(newData['endpoint'], newData['method'], newData);
-        conn.write(JSON.stringify(resp).length);  
-        conn.write(d);  
+        APIReq(newData['endpoint'], newData['method'], newData)
+            .then((resp) => {
+                const strResp = JSON.stringify(resp);
+                conn.write(strResp.length.toString().padEnd(64 - strResp.length.toString().length, " "));  
+                conn.write(JSON.stringify(resp));
+            })
+            .catch((err) => console.log(err));
+          
     }
 
     const onConnClose = () => {  
