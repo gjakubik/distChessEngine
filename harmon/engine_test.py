@@ -49,13 +49,19 @@ def receive(client):
         print(f'value error: {message_len}')
         return False
     while bytes_rec < message_len:
+        print(f'Read {bytes_rec} out of {message_len} bytes')
         chunk = client.recv(message_len - bytes_rec)
         if chunk == b'': # bad response
             return None
         bytes_rec += len(chunk)
         chunks.append(chunk)
     chunks = b''.join(chunks)
-    message = json.loads(chunks)
+    try:
+        message = json.loads(chunks)
+        response = {"status": "ok"}
+    except:
+        response = {"status": "fail"}
+    client.sendall(response)
     return message
 
 def main():
@@ -106,7 +112,10 @@ def main():
                         #'move_num': move_num,
                         'color':'black'
                     }
-                send(sock, message)
+                response = send(sock, message)
+                if response == None:
+                    print('idk bro')
+                    
                 # for now, this is ONLY THE MASTER, nobody else talks to me 
             else:
                 # message from the master
@@ -136,7 +145,10 @@ def main():
                         #'move_num': move_num,
                         'color':'black'
                     }
-                    send(s, message)
+                    response = send(sock, message)
+                    if response == None:
+                        print('idk bro')
+                    
         for s in writeable:
             pass
         for s in exceptional:

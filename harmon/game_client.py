@@ -220,7 +220,12 @@ class GameClient:
             bytes_rec += len(chunk)
             chunks.append(chunk)
         chunks = b''.join(chunks)
-        message = json.loads(chunks)
+        try:
+            message = json.loads(chunks)
+            response = {"status": "ok"}
+        except:
+            response = {"status": "fail"}
+        client.sendall(response)
         return message
 
     # returns a socket connected to the specified host and port
