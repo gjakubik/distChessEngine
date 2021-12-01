@@ -23,6 +23,7 @@ const handleConnection = (conn) => {
         try {
             if (newData.endpoint === "" ) {
                 console.log(conns);
+                console.log('::ffff:'+newData.host);
                 const engineConn = conns['::ffff:'+newData.host];
                 sendMessage(engineConn, JSON.stringify(newData))
             } else {
