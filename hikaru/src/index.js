@@ -91,6 +91,13 @@ app.post('/move', async (req, res) => {
     try {
         // TODO: Put user move in parse
         const playerMove = move.create(req.body.gameId, req.body.state, req.body.moveNum);
+        const gameObj = await game.get(req.body.gameId);
+        const serverObj = await server.get(gameObj.engine1);
+        const message = {
+            ...req.body,
+            "host": serverObj.host,
+            "port": serverObj.port
+        }
         // TODO: Send move to engine
         const engineResp = await tcp.sendTCP(req.body);
 

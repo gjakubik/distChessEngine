@@ -11,7 +11,9 @@ export default async function makeMove(gameId, state, moveNum) {
         const message = {
             "gameId": gameId,
             "state": state,
-            "moveNum": moveNum
+            "moveNum": moveNum,
+            "endpoint": "",
+            "color": "black"
         };
         // function to register server
         const resp = await fetch(API_BASE_URL + endpoint, {

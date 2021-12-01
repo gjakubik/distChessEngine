@@ -11,7 +11,8 @@ export default async function startGame(username, engineId) {
         const message = {
             "username": username,
             "engine1Id": engineId,
-            "engine2Id": ""
+            "engine2Id": "",
+            "endpoint": ""
         };
         console.log(message);
         // function to register server
