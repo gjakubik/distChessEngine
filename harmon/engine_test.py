@@ -82,10 +82,10 @@ def main():
     #   send state to master
     
     # make first move
-    move_num = 0
+    #move_num = 0
     move = stockfish.get_best_move()
     stockfish.make_moves_from_current_position([move])
-    move_num += 1 
+   # move_num += 1 
     # show curr board for fun + sanity check
     print(stockfish.get_board_visual())
     board_state = stockfish.get_fen_position()
@@ -103,7 +103,7 @@ def main():
                 time.sleep(15)
                 message = {
                         'state': stockfish.get_fen_position(),
-                        'move_num': move_num,
+                        #'move_num': move_num,
                         'color':'black'
                     }
                 send(sock, message)
@@ -119,7 +119,7 @@ def main():
                     print(f'bad json message idk what that means {message}')
                 
                 stockfish.set_fen_position(newBoardState)
-                move_num += 1
+               # move_num += 1
                 print(stockfish.get_board_visual())
                 next_move = stockfish.get_best_move()
                 if next_move == 'None':
@@ -129,11 +129,11 @@ def main():
                     break
                 else:
                     stockfish.make_moves_from_current_position([next_move])
-                    move_num += 1 
+                    #move_num += 1 
                     print(stockfish.get_board_visual())
                     message = {
                         'state': stockfish.get_fen_position(),
-                        'move_num': move_num,
+                        #'move_num': move_num,
                         'color':'black'
                     }
                     send(s, message)
