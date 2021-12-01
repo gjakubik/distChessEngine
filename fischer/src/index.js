@@ -4,7 +4,7 @@ const { APIReq } = require('./utils/APIReq');
 var conns = {};
 
 const sendMessage = (conn, message) => {
-    conn.write(message.length.toString().padEnd(64 - strResp.length.toString().length, " "));  
+    conn.write(message.length.toString().padEnd(64 - message.length.toString().length, " "));  
     conn.write(message);
 }
 
