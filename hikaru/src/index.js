@@ -53,13 +53,16 @@ app.post('/game', async (req, res) => {
     if (err !== "") {
         res.status(400).send(err);
         return;
-    }
+    };
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
         return;
-    }
+    };
 
+    res.status(200).send({"gameId": gameId});
+
+    /*
     console.log("sending message to engine");
     const serverObj = await server.get(req.body.engine1Id);
     // Send gameId to engine
@@ -71,11 +74,6 @@ app.post('/game', async (req, res) => {
         "host": serverObj.host,
         "port": serverObj.port
     }
-
-    const resp = await tcp.sendTCP(message, 5000)
-        .catch((error) => {
-            err = error
-        });
     
     if (err !== "") {
         res.status(400).send(err);
@@ -89,6 +87,7 @@ app.post('/game', async (req, res) => {
     } else {
         res.send("Engine declined game");
     }
+    */
 });
 
 app.post('/move', async (req, res) => {
@@ -103,7 +102,7 @@ app.post('/move', async (req, res) => {
             "port": serverObj.port
         }
         // TODO: Send move to engine
-        const engineResp = await tcp.sendTCP(req.body);
+        const engineResp = await tcp.sendTCP(message);
 
         // TODO: Put engine move in parse
         const engineMove = move.create(req.body.gameId, engineResp.state, engineResp.moveNum);
