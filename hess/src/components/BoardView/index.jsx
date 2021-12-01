@@ -50,8 +50,9 @@ export default function BoardView({ boardWidth }) {
     async function onDrop(sourceSquare, targetSquare) {
         // illegal move
         if (moveNum == 0) {
-            const gameId = await startGame(username, engineId);
-            setGameId(gameId);
+            const newGameId = await startGame(username, engineId);
+            console.log(newGameId);
+            await setGameId(newGameId);
         }
         const gameCopy = { ...game };
         const move = gameCopy.move({
@@ -64,7 +65,7 @@ export default function BoardView({ boardWidth }) {
         if (move === null) return false;
 
         setIsLoading(true);
-        const resp = await makeMove(gameId, game, moveNum);
+        const resp = await makeMove(gameId, game.fen(), moveNum);
         console.log(resp);
         try {
             safeGameMutate((game) => {

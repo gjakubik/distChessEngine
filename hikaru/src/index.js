@@ -49,7 +49,7 @@ app.post('/game', async (req, res) => {
         .catch((error) => {
             err = error;
         });
-    
+    console.log(gameId);
     if (err !== "") {
         res.status(400).send(err);
         return;

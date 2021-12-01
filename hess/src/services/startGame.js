@@ -30,7 +30,8 @@ export default async function startGame(username, engineId) {
             console.log()
             return {}
         }
-    
+        
+        console.log(resp.json());
         return resp.json().gameId
     } catch (err) {
         console.log(err);
