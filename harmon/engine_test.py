@@ -102,7 +102,7 @@ def main():
                 inputs.append(sock)
                 time.sleep(15)
                 message = {
-                        'board_state': stockfish.get_fen_position(),
+                        'state': stockfish.get_fen_position(),
                         'move_num': move_num,
                         'color':'black'
                     }
@@ -132,7 +132,7 @@ def main():
                     move_num += 1 
                     print(stockfish.get_board_visual())
                     message = {
-                        'board_state': stockfish.get_fen_position(),
+                        'state': stockfish.get_fen_position(),
                         'move_num': move_num,
                         'color':'black'
                     }
