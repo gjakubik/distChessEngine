@@ -35,7 +35,7 @@ const handleConnection = (conn) => {
                     .then((resp) => {
                         console.log(resp)
                         const strResp = JSON.stringify(resp);
-                        sendMessage(conn, strResp);
+                        sendMessage(conn, resp);
                     })
                     .catch((err) => console.log(err));
                 }
