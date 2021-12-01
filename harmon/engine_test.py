@@ -24,6 +24,7 @@ def send(client, message):
     message = message.encode(ENCODING)
     len_message = str(len(message)).encode(ENCODING)
     len_message += b' '*(HEADER_SIZE - len(len_message))
+    print(len_message)
     client.sendall(len_message)
 
     # send the actual message 
@@ -99,6 +100,7 @@ def main():
                 (sock, addr) = listener.accept()
                 print(f'Accepted new connection from: {addr}')
                 inputs.append(sock)
+                time.sleep(15)
                 message = {
                         'board_state': stockfish.get_fen_position(),
                         'move_num': move_num,
