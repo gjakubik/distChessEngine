@@ -92,6 +92,7 @@ def main():
         if client.workers:
             client.evals = []
             client.worker_timestart = time.time()
+            total_start = time.time()
             for worker, move in zip(client.workers, moves):
                 start = time.time()
                 response = client.assign_move(color, board_state, move, worker)
@@ -101,6 +102,7 @@ def main():
                 if response == None:
                     # TODO handle socket that returns none to this
                     pass
+            print(f'Total Time: {time.time() - total_start}')
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
