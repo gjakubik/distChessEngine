@@ -60,13 +60,16 @@ app.post('/game', async (req, res) => {
         return;
     }
 
-    console.log("sending message to engine")
+    console.log("sending message to engine");
+    const serverObj = await server.get(req.body.engine1Id);
     // Send gameId to engine
     const message = {
         "owner": req.body.username,
         "type": "game_id",
         "game_id": gameId,
         "endpoint": "",
+        "host": serverObj.host,
+        "port": serverObj.port
     }
 
     const resp = await tcp.sendTCP(message, 5000)
