@@ -150,8 +150,8 @@ def main():
                                 #'moveNum': int(move_num) + 1
                             }
                             response = client.server_send(client.server, message)
-                            print(f'Move total time: {total_move_time}')
-                            print(f'Move evaluation: {evaluation[1]}')
+                            ##print(f'Move total time: {total_move_time}')
+                            #print(f'Move evaluation: {evaluation[1]}')
                             if response == None:
                                 # TODO handle dead game server
                                 pass
@@ -179,9 +179,9 @@ def main():
                                 #'moveNum': int(move_num) + 1
                             }
                             response = client.server_send(client.server, message)
-                            total_move_time = time.time() - move_start
-                            print(f'Move total time: {total_move_time}')
-                            print(f'Move evaluation: {evaluation[1]}')
+                            #total_move_time = time.time() - move_start
+                            #print(f'Move total time: {total_move_time}')
+                            #print(f'Move evaluation: {evaluation[1]}')
                 elif role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
                     #if s is client.listener: # idk if this is how i wanna implement htis
