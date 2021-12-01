@@ -108,7 +108,7 @@ def main():
                         message = client.receive(s)
                         try:
                             gameId = message['gameId']
-                            board_state = message['board_state']
+                            board_state = message['state']
                             move_num = message['moveNum']
                             color = message['color']
                         except KeyError:
@@ -191,7 +191,7 @@ def main():
                         try:
                             gameId = message['gameId']
                             color = message['color']
-                            board_state = message['board_state']
+                            board_state = message['state']
                             move = message['move']
                         except KeyError and TypeError:
                             print(f'Master sent bad formed JSON: {message}')
