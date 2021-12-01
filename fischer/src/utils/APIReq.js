@@ -16,7 +16,7 @@ const APIReq = async (endpoint, method, message) => {
         },
         agent: httpsAgent
     };
-
+    console.log(opts);
     if ( method != 'GET' ) {
         console.log('not a get req');
         opts = {...opts, body: JSON.stringify(message)}
