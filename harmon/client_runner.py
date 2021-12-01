@@ -80,14 +80,14 @@ def main():
         moves = client.gen_moves()
         print(moves)
         time.sleep(30)
-
-        readable, writeable, exceptional = select.select(inputs, outputs, inputs)
-        for s in readable:
-            if s is client.listener:
-                print("weee wooo weee wooo new connection alert!")
-                (sock, addr) = client.listener.accept()
-                inputs.append(sock)
-                client.workers.append(sock)
+        while len(client.workers) < k:
+            readable, writeable, exceptional = select.select(inputs, outputs, inputs)
+            for s in readable:
+                if s is client.listener:
+                    print("weee wooo weee wooo new connection alert!")
+                    (sock, addr) = client.listener.accept()
+                    inputs.append(sock)
+                    client.workers.append(sock)
 
         if client.workers:
             client.evals = []
@@ -155,7 +155,7 @@ def main():
                                 'moveNum': move_num
                             }
                             print(f'Message: \n {message}')
-                            response = master_client.send(master_client.game_server, message)
+                            response = client.send(client.game_server, message)
                             if response == None:
                                 # TODO handle dead game server
                                 pass
