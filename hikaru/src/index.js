@@ -92,6 +92,7 @@ app.post('/game', async (req, res) => {
 
 app.post('/move', async (req, res) => {
     try {
+        console.log("moving");
         // TODO: Put user move in parse
         const playerMove = move.create(req.body.gameId, req.body.state, req.body.moveNum);
         const gameObj = await game.get(req.body.gameId);

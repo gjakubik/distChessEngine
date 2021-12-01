@@ -16,6 +16,7 @@ export default async function makeMove(gameId, state, moveNum) {
             "color": "black"
         };
         // function to register server
+        console.log(message);
         const resp = await fetch(API_BASE_URL + endpoint, {
             method: 'POST',
             mode: 'no-cors',
@@ -30,7 +31,7 @@ export default async function makeMove(gameId, state, moveNum) {
             console.log()
             return {}
         }
-    
+        console.log(resp.json());
         return resp.json()
     } catch (err) {
         console.log(err);
