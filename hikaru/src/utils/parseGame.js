@@ -15,9 +15,7 @@ const create = async (username, engine1Id, engine2Id) => {
         const Server = Parse.Object.extend('Server');
         console.log(engine1Id)
         const query = new Parse.Query(Server);
-        const engine1Obj = await query.get(engine1Id).catch((error) => {
-            console.log(error);
-        });
+        const engine1Obj = await query.get(engine1Id);
 
         console.log(engine1Obj);
         if (engine1Obj) {
