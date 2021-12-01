@@ -89,10 +89,10 @@ def main():
                     break'''
 
             # TODO: in this block, have master client update the game server with current list of workers
-            if time.time() - last_update > 60:
+            '''if time.time() - last_update > 60:
                 response = client.workers_update()
                 # TODO: error check 
-                last_update = time.time()
+                last_update = time.time()'''
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
