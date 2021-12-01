@@ -94,6 +94,7 @@ def main():
             client.worker_timestart = time.time()
             for worker, move in zip(client.workers, moves):
                 response = client.assign_move(color, board_state, move, worker)
+                print(response)
                 if response == None:
                     # TODO handle socket that returns none to this
                     pass
