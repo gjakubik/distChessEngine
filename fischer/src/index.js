@@ -33,9 +33,8 @@ const handleConnection = (conn) => {
                     // If the endpoint is otherwise, it is master or worker registering
                     APIReq(newData['endpoint'], newData['method'], newData)
                     .then((resp) => {
-                        console.log(resp)
-                        const strResp = JSON.stringify(resp);
-                        sendMessage(conn, resp);
+                        console.log(resp);
+                        sendMessage(conn, JSON.stringify(resp));
                     })
                     .catch((err) => console.log(err));
                 }
