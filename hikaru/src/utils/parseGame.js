@@ -11,7 +11,7 @@ const create = async (username, engine1Id, engine2Id) => {
     try {
         const myNewObject = new Parse.Object('Game');
         myNewObject.set('username', username);
-
+        console.log(username, engine1Id);
         const Server = Parse.Object.extend('Server');
         console.log(engine1Id)
         const query = new Parse.Query(Server);
