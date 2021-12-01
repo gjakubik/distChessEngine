@@ -41,7 +41,7 @@ const get = async (gameId) => {
     const query = new Parse.Query(Game);
     
     try {
-        const object = await query.equalTo("objectId", gameId);
+        const object = await query.get(gameId);
         
         const gameObj = {
             "username": object.get('username'),
