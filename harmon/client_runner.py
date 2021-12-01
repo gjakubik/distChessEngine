@@ -89,10 +89,10 @@ def main():
                     break'''
 
             # TODO: in this block, have master client update the game server with current list of workers
-            if time.time() - last_update > 60:
+            '''if time.time() - last_update > 60:
                 response = client.workers_update()
                 # TODO: error check 
-                last_update = time.time()
+                last_update = time.time()'''
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
@@ -108,7 +108,7 @@ def main():
                         message = client.receive(s)
                         try:
                             gameId = message['gameId']
-                            board_state = message['board_state']
+                            board_state = message['state']
                             move_num = message['moveNum']
                             color = message['color']
                         except KeyError:
@@ -191,7 +191,7 @@ def main():
                         try:
                             gameId = message['gameId']
                             color = message['color']
-                            board_state = message['board_state']
+                            board_state = message['state']
                             move = message['move']
                         except KeyError and TypeError:
                             print(f'Master sent bad formed JSON: {message}')
