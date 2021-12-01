@@ -12,7 +12,7 @@ const APIReq = async (endpoint, method, message) => {
         method: method,
         mode: 'same-origin',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'text/plain'
         },
         agent: httpsAgent
     };
