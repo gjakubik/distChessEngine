@@ -66,7 +66,7 @@ app.post('/game', async (req, res) => {
     const message = {
         "owner": req.body.username,
         "type": "game_id",
-        "game_id": gameId,
+        "gameId": gameId,
         "endpoint": "",
         "host": serverObj.host,
         "port": serverObj.port
