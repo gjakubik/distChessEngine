@@ -19,21 +19,20 @@ GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, role, k, id, stockfish, test_host, test_port):
+    def __init__(self, role, k, id, stockfish, host, port):
         self.role = role
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.test_host = test_host
-        self.test_port = test_port
-        
-
         if self.role == 'master':
+            self.test_host = host
+            self.test_port = port
+        
             self.evals = []
             self.workers = [] # list of sockets
-            self.server.connect((test_host, test_port))
+            self.server.connect((self.test_host, self.test_port))
             # tcp listener to communicate with worker clients
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -47,6 +46,9 @@ class GameClient:
         else: 
             # TODO: make socket stuff for workers
             self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # worker socket 
+            self.master_host = host
+            self.master_port = port
+            self.worker.connect((host, port))
             
         # other fields:
         # self.workers -- list of sockets connecting to the workers
