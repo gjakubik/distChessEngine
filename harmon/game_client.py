@@ -131,7 +131,7 @@ class GameClient:
 
     def eval_move(self, board_state, move, depth, time):
         # TODO have stockfish play forward from the board state for some # of moves and report evaluation of it
-        self.send(self.worker, {'status': 'OK'})
+        
         self.stockfish.set_fen_position(board_state)
         print(self.stockfish.get_board_visual())
         print(move)
@@ -147,7 +147,7 @@ class GameClient:
         evaluation = self.stockfish.get_evaluation()
         print(evaluation)
         message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
-        self.send(self.worker, message)
+        return self.send(self.worker, message)
 
     def gen_moves(self):
         num_moves = self.k if self.k > 1 else 1
@@ -171,7 +171,6 @@ class GameClient:
             "move": move
         }
         response = self.send(worker, message)
-        print(response)
         return response # either will be None or OK
 
     def server_send(self, client, message):
