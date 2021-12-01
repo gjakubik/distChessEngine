@@ -134,7 +134,7 @@ class GameClient:
         self.stockfish.set_fen_position(board_state)
         print(self.stockfish.get_board_visual())
         print(move)
-        self.stockfish.make_moves_from_current_position(['d7d5'])
+        self.stockfish.make_moves_from_current_position([move])
         print(self.stockfish.get_board_visual())
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
@@ -145,7 +145,7 @@ class GameClient:
             print(self.stockfish.get_board_visual())
         evaluation = self.stockfish.get_evaluation()
         print(evaluation)
-        message = {'type': 'evaluation','engineId': self.engineId, 'id': id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
+        message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return self.send(self.worker, message)
 
     def gen_moves(self):
