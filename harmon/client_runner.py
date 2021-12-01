@@ -144,7 +144,7 @@ def main():
                             message = {
                                 'method': 'POST',
                                 'endpoint': '/move',
-                                'engineId': client.engineId,
+                                #'engineId': client.engineId,
                                 #'gameId': client.gameId,
                                 'state': client.stockfish.get_fen_position(),
                                 'moveNum': int(move_num) + 1
@@ -174,7 +174,7 @@ def main():
                                 'method': 'POST', 
                                 'endpoint': '/move', 
                                 'state': client.stockfish.get_fen_position(), 
-                                'engineId': client.engineId, 
+                                #'engineId': client.engineId, 
                                 #'gameId': client.gameId, 
                                 'moveNum': int(move_num) + 1
                             }
