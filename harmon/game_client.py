@@ -19,17 +19,21 @@ GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, role, k, id, stockfish):
+    def __init__(self, role, k, id, stockfish, test_host, test_port):
         self.role = role
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
+
+        self.test_host = test_host
+        self.test_port = test_port
+        
 
         if self.role == 'master':
             self.evals = []
             self.workers = [] # list of sockets
+            self.server.connect((test_host, test_port))
             # tcp listener to communicate with worker clients
             listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -152,13 +156,13 @@ class GameClient:
         moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
-    def assign_move(self, gameId, color, board_state, move, worker):
+    def assign_move(self, color, board_state, move, worker):
         # move: representation of starting move assigned to this worker
         # worker: the socket the master has assigned to this worker
         # TODO: create & send message to WORKER telling them to evaluate MOVE
         # create json message
         message = {
-            'gameId': gameId,
+            #'gameId': gameId,
             "type": "move",
             "color": color,
             "board_state": board_state,
