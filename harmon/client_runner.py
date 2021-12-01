@@ -93,7 +93,10 @@ def main():
             client.evals = []
             client.worker_timestart = time.time()
             for worker, move in zip(client.workers, moves):
+                start = time.time()
                 response = client.assign_move(color, board_state, move, worker)
+                moveTime = time.time() - start
+                print(f'Move Time: {moveTime}')
                 print(response)
                 if response == None:
                     # TODO handle socket that returns none to this
