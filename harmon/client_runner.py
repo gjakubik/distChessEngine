@@ -21,15 +21,15 @@ def main():
     if role == 'master':
         try:
             #engineId = sys.argv[5]
-            test_host = sys.argv[6]
-            test_port = sys.argv[7]
+            test_host = sys.argv[5]
+            test_port = int(sys.argv[6])
         except IndexError:
             print('no host/port given')
     else:
         try:
             #engineId = sys.argv[5]
-            master_host = sys.argv[6]
-            master_port = sys.argv[7]
+            master_host = sys.argv[5]
+            master_port = int(sys.argv[6])
         except IndexError:
             print('no host/port given')
 
