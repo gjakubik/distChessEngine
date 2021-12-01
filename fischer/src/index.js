@@ -22,7 +22,7 @@ const handleConnection = (conn) => {
         // If endpoint is empty then this is a new move from the user
         try {
             if (newData.endpoint === "" ) {
-                const engineConn = conns[newData.host];
+                const engineConn = conns['::ffff:'+newData.host];
                 sendMessage(engineConn, JSON.stringify(newData))
             } else {
                 if (newData.endpoint === "/move") {
