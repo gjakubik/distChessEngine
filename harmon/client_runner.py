@@ -198,9 +198,9 @@ def main():
                             color = message['color']
                             board_state = message['board_state']
                             move = message['move']
-                        except KeyError:
+                        except KeyError and TypeError:
                             print(f'Master sent bad formed JSON: {message}')
-                        response = client.eval_move(board_state, move, DEPTH, ENGINE_TIME)
+                        response = client.eval_move(board_state, move, DEPTH, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
                         # TODO: error check this response 
             for s in writeable: 
                 pass
