@@ -65,7 +65,8 @@ app.post('/game', async (req, res) => {
     const message = {
         "owner": req.body.username,
         "type": "game_id",
-        "game_id": gameId
+        "game_id": gameId,
+        "endpoint": "",
     }
 
     const resp = await tcp.sendTCP(message, 5000)
