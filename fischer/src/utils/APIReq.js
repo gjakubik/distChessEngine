@@ -10,7 +10,7 @@ const APIReq = async (endpoint, method, message) => {
     // function to register server
     var opts = {
         method: method,
-        mode: 'same-origin',
+        mode: 'no-cors',
         headers: {
             'Content-Type': 'text/plain'
         },
