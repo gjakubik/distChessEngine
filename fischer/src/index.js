@@ -27,7 +27,7 @@ const handleConnection = (conn) => {
             } else {
                 if (newData.endpoint === "/move") {
                     // if the endpoint is move it is move response from engine, update API
-                    const APIConn = conns['127.0.0.1']
+                    const APIConn = conns['::ffff:127.0.0.1']
                     sendMessage(APIConn, JSON.stringify(newData)); 
                 } else {
                     // If the endpoint is otherwise, it is master or worker registering
