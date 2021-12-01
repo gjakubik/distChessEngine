@@ -198,8 +198,32 @@ class GameClient:
         # get the actual response
         response = self.receive(client)
         return response
-
+    
     def receive(self, client):
+        chunks = []
+        bytes_rec = 0
+        try: 
+            message_len = client.recv(HEADER_SIZE)
+        except ConnectionResetError:
+            # TODO: handle this error
+            print("connection was reset by server")
+            return False
+        try:
+            message_len = int(message_len.decode(ENCODING))
+        except ValueError:
+            print(f'value error: {message_len}')
+            return False
+        while bytes_rec < message_len:
+            chunk = client.recv(message_len - bytes_rec)
+            if chunk == b'': # bad response
+                return None
+            bytes_rec += len(chunk)
+            chunks.append(chunk)
+        chunks = b''.join(chunks)
+        message = json.loads(chunks)
+        return message
+
+    def server_receive(self, client):
         chunks = []
         bytes_rec = 0
         try: 

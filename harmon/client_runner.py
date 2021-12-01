@@ -118,7 +118,7 @@ def main():
                         inputs.append(sock)
                         client.workers.append(sock)
                     elif s is client.server: # received message from server -- it's engine's turn to make a move
-                        message = client.receive(s)
+                        message = client.server_receive(s)
                         try:
                             #gameId = message['gameId']
                             board_state = message['state']
