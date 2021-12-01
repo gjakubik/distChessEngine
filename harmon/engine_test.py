@@ -106,7 +106,7 @@ def main():
                         'move_num': move_num,
                         'color':'black'
                     }
-                send(s, message)
+                send(sock, message)
                 # for now, this is ONLY THE MASTER, nobody else talks to me 
             else:
                 # message from the master
