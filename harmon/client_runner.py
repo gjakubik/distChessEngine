@@ -88,16 +88,17 @@ def main():
                     (sock, addr) = client.listener.accept()
                     inputs.append(sock)
                     client.workers.append(sock)
+                else:
+                    # reading from a worker
+                    message = client.receive(s)
+                    print(message)
 
         if client.workers:
             client.evals = []
             client.worker_timestart = time.time()
             for worker, move in zip(client.workers, moves):
-                response = client.assign_move(color, board_state, move, worker)
-                print(response)
-                if response == None:
-                    # TODO handle socket that returns none to this
-                    pass
+                client.assign_move(color, board_state, move, worker)
+               
     while True:
         try:
             # check for a new master -- TODO fix this to reflect distribution
