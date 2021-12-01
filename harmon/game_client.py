@@ -249,6 +249,8 @@ class GameClient:
             response = {"status": "ok"}
         except:
             response = {"status": "fail"}
+        response = json.dumps(response)
+        response = response.encode(ENCODING)
         client.sendall(response)
         return message
 
