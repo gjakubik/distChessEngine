@@ -212,6 +212,8 @@ def offlineMaster(client, mode, board):
     else:
         # just use first move 
         move = moves[0]
+    if move == None:
+        print(moves)
     print(f'Computer (black) move is: {move}')
     if evaluation != {}:
         print(f'Evaluation for computer move: {evaluation}')
