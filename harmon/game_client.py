@@ -124,7 +124,7 @@ class GameClient:
                 elif e[1]['type'] == 'mate':
                     if e[1]['value'] > best_mate[1] and e[1]['value'] < 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
-        if math.abs(best_mate[1]) <= 3:
+        if abs(best_mate[1]) <= 3:
             return best_mate
         else:
             return max_cp
