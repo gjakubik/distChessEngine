@@ -8,10 +8,11 @@ import game_client
 import select
 import socket
 import json
+import chess
 
 # globals
 DEPTH = 20 # num turns to sim (total, not each side)
-ENGINE_TIME = 500 # milliseconds
+ENGINE_TIME = 100 # milliseconds
 ENCODING = 'utf8'
 
 
@@ -76,6 +77,7 @@ def main():
     if role == 'master':
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
         board_state = client.stockfish.get_fen_position()
         print(board_state)
@@ -91,7 +93,7 @@ def main():
         print(client.stockfish.get_board_visual())
     while True:
         if role == 'master':
-            offlineMaster(client, mode) # this does the stuff later in the while loop + in master_recv_server just for offline testing
+            offlineMaster(client, mode, board) # this does the stuff later in the while loop + in master_recv_server just for offline testing
             continue
 
         try:
@@ -147,62 +149,84 @@ def main():
                     s.close()
                 exit()
 
-def offlineMaster(client, mode):
+# "offline" just means no frontend server
+def offlineMaster(client, mode, board):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
-    if color == 'white':
-        if mode == 'user':
-            # prompt user for move
-            userMove = input('Please enter a move: ')
-            client.stockfish.make_moves_from_current_position([userMove])
-            print(client.stockfish.get_board_visual())
-        else: # in cpu mode, the white side is just using general stockfish first cut moves 
-            whiteMove = client.stockfish.get_best_move_time(1)
-            if whiteMove == None:
-                print(f'==== CHECKMATE ==== \n === BLACK WINS! ===')
-                exit()
-            client.stockfish.make_moves_from_current_position([whiteMove])
-            print(f'White move is: {whiteMove}')
-            print(client.stockfish.get_board_visual())
-            time.sleep(5)
-        color = "black"
-        board_state = client.stockfish.get_fen_position()
-        move = ''
-        moves = client.gen_moves()
-        if len(moves) < 1:
-            print(f'==== CHECKMATE ==== \n === WHITE WINS! ===')
+    if mode == 'user':
+        # prompt user for move
+        userMove = input('Please enter a move: ')
+        if userMove == 'resign':
+            print(f'===== GAME OVER ====== \n ===== BLACK WINS =====')
             exit()
-        evaluation = {}
-        if len(client.workers) > 0:
-            client.evals = []
-            for worker, move in zip(client.workers, moves):
-                response = client.assign_move(color, board_state, move, worker)
-                if not response:
-                    exit()
+        while not client.stockfish.is_move_correct(userMove):
+            print(f'userMove is not valid. Moves must be of format: e2e4')
+            userMove = input('Please enter a move: ')
+        client.stockfish.make_moves_from_current_position([userMove])
+        board.push(chess.Move.from_uci(userMove))
+        if board.is_insufficient_material():
+            print(f'====== DRAW: Insufficient Material =======')
+            exit()
+        if board.can_claim_threefold_repetition():
+            print(f'====== DRAW: threefold repetition')
+            exit()
 
-            # wait for responses from the workers
-            while len(client.evals) < len(client.workers):
-                readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
-
-                for s in readable: # here we know that we can only get messages from a worker
-                    master_recv_worker(client, s)
-
-            # now we have responses from each worker --> time to choose best one (?)
-            bestMove = client.eval_responses(client.evals, color)
-            move = bestMove[0]
-            evaluation = bestMove[1]
-        else:
-            # just use first move 
-            move = moves[0]
-        print(f'Computer (black) move is: {move}')
-        if evaluation != {}:
-            print(f'Evaluation for computer move: {evaluation}')
-        client.stockfish.make_moves_from_current_position([move['Move']])
         print(client.stockfish.get_board_visual())
+    else: # in cpu mode, the white side is just using general stockfish first cut moves 
+        whiteMove = client.stockfish.get_best_move_time(1)
+        if whiteMove == None:
+            print(f'==== CHECKMATE ==== \n === BLACK WINS! ===')
+            exit()
+        client.stockfish.make_moves_from_current_position([whiteMove])
+        print(f'White move is: {whiteMove}')
+        board.push(chess.Move.from_uci(whiteMove))
+        print(client.stockfish.get_board_visual())
+    color = "black"
+    board_state = client.stockfish.get_fen_position()
 
+    # generate k moves for computer, check that they are all valid
+    move = ''
+    moves = client.gen_moves()
+    if len(moves) < 1:
+        print(f'==== CHECKMATE ==== \n === WHITE WINS! ===')
+        exit()
+    evaluation = {}
+    if len(client.workers) > 0:
+        client.evals = []
+        for worker, move in zip(client.workers, moves):
+            response = client.assign_move(color, board_state, move, worker)
+            if not response:
+                exit()
 
-        if mode == 'cpu':
-            time.sleep(5)
+        # wait for responses from the workers
+        while len(client.evals) < len(client.workers):
+            readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
+
+            for s in readable: # here we know that we can only get messages from a worker
+                master_recv_worker(client, s)
+
+        # now we have responses from each worker --> time to choose best one (?)
+        bestMove = client.eval_responses(client.evals, color)
+        move = bestMove[0]
+        evaluation = bestMove[1]
+    else:
+        # just use first move 
+        move = moves[0]
+    print(f'Computer (black) move is: {move}')
+    if evaluation != {}:
+        print(f'Evaluation for computer move: {evaluation}')
+    client.stockfish.make_moves_from_current_position([move['Move']])
+
+    # make moves on Board object
+    board.push(chess.Move.from_uci(move['Move']))
+    print(client.stockfish.get_board_visual())
+    if board.is_insufficient_material():
+            print(f'====== DRAW: Insufficient Material =======')
+            exit()
+    if board.can_claim_threefold_repetition():
+        print(f'====== DRAW: threefold repetition =========')
+        exit()
+    print(client.stockfish.get_board_visual())
 
 def master_recv_server(client, s):
     message = client.receive(s)
