@@ -261,7 +261,7 @@ def worker_recv_server(client, s):
     except KeyError:
         print(f'Server sent unexpected JSON: {message}')
     if type == 'election':
-        response = client.election_vote
+        response = client.election_vote()
     elif type == 'election_result':
         #TODO make this client the master
         pass
@@ -299,8 +299,8 @@ def master_recv_worker(client, s):
     
     if type == 'evaluation':
         move = message['move']
-        evaluation = message['evaluation']
-        client.evals.append((move, evaluation))
+        eval = {"type": message["eval_type"], "value": message["eval_value"]}
+        client.evals.append((move, eval)) # evals is list of (move, {type: cp|mate, value: value})
         # send ack to worker
         ack_message = json.dumps({'type': 'ack', 'owner': 'master', 'status': 'OK'})
         s.sendall(ack_message.encode(ENCODING))

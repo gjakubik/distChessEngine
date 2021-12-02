@@ -106,8 +106,8 @@ class GameClient:
             # positive is favorable (advantage white)
             max_cp = (None, (-1) * math.inf)
             best_mate = (None, math.inf)
-            for e in evals:
-                if e[1]['type'] == 'cp': # centipawns eval
+            for e in evals: # e is tuple: (move, {cp|mate: value})
+                if e[1]['type'] == "cp":
                     if e[1]['value'] > max_cp[1]:
                         max_cp = (e[0], e[1]['value']) 
                 elif e[1]['type'] == 'mate':
