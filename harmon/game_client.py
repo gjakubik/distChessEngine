@@ -147,7 +147,7 @@ class GameClient:
         evaluation = self.stockfish.get_evaluation()
         print(evaluation)
         message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
-        return self.send(self.worker, message)
+        return message
 
     def gen_moves(self):
         num_moves = self.k if self.k > 1 else 1
