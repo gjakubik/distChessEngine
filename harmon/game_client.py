@@ -192,11 +192,11 @@ class GameClient:
         client.sendall(len_message)
 
         # send the actual message 
+        print(f'sending {message}')
         client.sendall(message)
 
         # get the actual response
         response = client.recv(HEADER_SIZE)
-       # response = self.receive(client)
         return response
 
     def receive(self, client):
