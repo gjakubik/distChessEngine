@@ -194,12 +194,14 @@ def offlineMaster(client, mode, board):
     if len(client.workers) > 0:
         client.evals = []
         for worker, move in zip(client.workers, moves):
+            print(f'Sending {move}')
             response = client.assign_move(color, board_state, move, worker)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
                 worker.close()
                 client.k -= 1
+                moves.remove(move)
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
