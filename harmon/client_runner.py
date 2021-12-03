@@ -200,6 +200,7 @@ def offlineMaster(client, mode, board):
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
+                print(iter_list.index(worker))
                 worker.close()
                 client.k -= 1
                 if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
@@ -209,7 +210,6 @@ def offlineMaster(client, mode, board):
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
                     break
-                continue
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
