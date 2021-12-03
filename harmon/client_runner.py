@@ -208,13 +208,13 @@ def offlineMaster(client, mode, board):
                     # if the move assigned to failed worker was last one in list, add it to client.evals 
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
+                    break
+                continue
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
             readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
-            print(readable)
-            print(f'Have received {len(client.evals)} evaluations, have {len(client.workers)} workers')
             for s in readable: # here we know that we can only get messages from a worker
                 master_recv_worker(client, s)
 
