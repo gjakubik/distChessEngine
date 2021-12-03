@@ -193,7 +193,8 @@ def offlineMaster(client, mode, board):
     evaluation = {}
     if len(client.workers) > 0:
         client.evals = []
-        for worker, move in zip(client.workers, moves):
+        iter_list = zip(client.workers, moves)  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+        for worker, move in iter_list:
             print(f'Sending {move}')
             response = client.assign_move(color, board_state, move, worker)
             if not response:
@@ -220,7 +221,8 @@ def offlineMaster(client, mode, board):
             if time.time() > client.time_out:
                 print("a client timed out!")
                 # throw out the rest of the workers :( 
-                for worker, move in zip(client.workers, moves):
+                iter_list = zip(client.workers, moves) # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+                for worker, move in iter_list:
                     if not any(move in e for e in client.evals): # if move has not been evaluated yet, throw out associated worker
                         client.workers.remove(worker)
                         worker.close()
