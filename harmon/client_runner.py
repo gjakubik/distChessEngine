@@ -201,7 +201,12 @@ def offlineMaster(client, mode, board):
                 client.workers.remove(worker)
                 worker.close()
                 client.k -= 1
-                moves.remove(move)
+                if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
+                    moves.remove(move)
+                else:
+                    # if the move assigned to failed worker was last one in list, add it to client.evals 
+                    # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
+                    client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
@@ -218,13 +223,21 @@ def offlineMaster(client, mode, board):
                     if not any(move in e for e in client.evals): # if move has not been evaluated yet, throw out associated worker
                         client.workers.remove(worker)
                         worker.close()
-                        moves.remove(move)
                         print(f'Received no evaluation for move: {move}')
                         print(f'Closing worker {worker}')
                         client.k -= 1
+                        if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
+                            moves.remove(move)
+                        else:
+                            # if the move assigned to failed worker was last one in list, add it to client.evals 
+                            # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
+                            client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
 
-        # now we have responses from each worker --> time to choose best one (?)
-        bestMove = client.eval_responses(client.evals, color)
+        # now we have responses from each worker --> time to choose best one 
+        if len(client.evals) > 1:
+            bestMove = client.eval_responses(client.evals, color)
+        else:
+            bestMove = client.evals[0]
         move = bestMove[0]
         evaluation = bestMove[1]
     else:
