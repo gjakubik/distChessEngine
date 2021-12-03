@@ -193,16 +193,16 @@ def offlineMaster(client, mode, board):
     evaluation = {}
     if len(client.workers) > 0:
         client.evals = []
-        iter_list = zip(client.workers.copy(), moves.copy())  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+        iter_list = zip(list(client.workers), list(moves))  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
         for worker, move in iter_list:
             print(f'Sending {move}')
             response = client.assign_move(color, board_state, move, worker)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
-                print(list(iter_list))
                 worker.close()
                 client.k -= 1
+                print(len(moves))
                 if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
                     moves.remove(move)
                 else:
