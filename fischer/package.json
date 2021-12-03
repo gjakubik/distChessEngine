@@ -7,5 +7,9 @@
     "start": "node src"
   },
   "author": "gjakubik",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "cross-fetch": "^3.1.4",
+    "node-fetch": "^2.0.0"
+  }
 }

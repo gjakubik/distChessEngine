@@ -1,6 +1,7 @@
-const net = require('net');
+const net       = require('net');
+const constants = require('../constants');
 
-const sendTCP = (host, port, message, timeout) => {
+const sendTCP =  (message, timeout) => {
     return new Promise((resolve, reject) => {
         
         const socket = new net.Socket();
@@ -12,10 +13,9 @@ const sendTCP = (host, port, message, timeout) => {
             return;
         }, timeout);
 
-        socket.connect({ port: port }, host, () => {
+        socket.connect({ port: constants.TCP_GATE_PORT }, constants.TCP_GATE_HOST, () => {
             console.log("connected to engine");
-            socket.write(len(message));
-            socket.write(message);
+            socket.write(JSON.stringify(message));
         });
 
         console.log("data handler");

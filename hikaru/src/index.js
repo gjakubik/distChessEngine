@@ -5,11 +5,14 @@ const https   = require('https');
 const net     = require('net');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
+const move    = require('./utils/parseMove');
 const tcp     = require('./utils/sendTCP');
 
 // Initialize express app
 const app = express();
-app.use(express.json());
+app.use(express.json({
+    type: ['application/json', 'text/plain']
+  }));
 
 // Set view engine for home route html rendering
 app.set('view engine', 'pug');
@@ -46,29 +49,31 @@ app.post('/game', async (req, res) => {
         .catch((error) => {
             err = error;
         });
-    
+    console.log(gameId);
     if (err !== "") {
         res.status(400).send(err);
         return;
-    }
+    };
 
     if (gameId === "") {
         res.status(402).send("Creation of game failed");
         return;
-    }
+    };
 
-    console.log("sending message to engine")
+    res.status(200).send({"gameId": gameId});
+
+    /*
+    console.log("sending message to engine");
+    const serverObj = await server.get(req.body.engine1Id);
     // Send gameId to engine
     const message = {
         "owner": req.body.username,
         "type": "game_id",
-        "game_id": gameId
+        "gameId": gameId,
+        "endpoint": "",
+        "host": serverObj.host,
+        "port": serverObj.port
     }
-
-    const resp = await tcp.sendTCP(servObj.host, servObj.port, message, 5000)
-        .catch((error) => {
-            err = error
-        });
     
     if (err !== "") {
         res.status(400).send(err);
@@ -82,24 +87,37 @@ app.post('/game', async (req, res) => {
     } else {
         res.send("Engine declined game");
     }
+    */
 });
 
-app.post('/move', (req, res) => {
-    // TODO: Put user move in parse
+app.post('/move', async (req, res) => {
+    try {
+        console.log("moving");
+        // TODO: Put user move in parse
+        const playerMove = await move.create(req.body.gameId, req.body.state, req.body.moveNum);
+        const gameObj = await game.get(req.body.gameId);
+        const serverObj = await server.get(gameObj.engine1);
+        const message = {
+            ...req.body,
+            "host": serverObj.host,
+            "port": serverObj.port
+        }
+        // TODO: Send move to engine
+        const engineResp = await tcp.sendTCP(message);
 
-    // TODO: Send move to engine
-
-    // TODO: Get response from engine
-
-    // TODO: Put engine move in parse
-
-    // TODO: Send engine move as response to user
+        // TODO: Put engine move in parse
+        const engineMove = await move.create(req.body.gameId, engineResp.state, engineResp.moveNum);
+        // TODO: Send engine move as response to user
+        res.status(200).send(engineResp);
+    } catch (err) {
+        res.status(400).send("Error sending move to server: ", err);
+    }
+    
 
 });
 
 app.post('/server', async (req, res) => {
     // Make sure request is valid
-    console.log(req);
     try {
         assert(true, req.body.host);
         assert(true, req.body.port);
@@ -115,10 +133,21 @@ app.post('/server', async (req, res) => {
     res.status(200).send({"engineId": engineId});
 })
 
+app.get('/server/:engineId', async (req, res) => {
+    const resp = await server.get(req.params.engineId);
+
+    if (!resp) {
+        res.status(400).send("Could not find info for engineId: ", req.params.engineId);
+        return;
+    }
+
+    res.status(200).send(resp);
+})
+
 // starting the server
 https.createServer({
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
+    key: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/gavinjakubik.me/cert.pem')
 }, app).listen(5050, () => {
     console.log('listening on port https://gavinjakubik.me:5050');
 })

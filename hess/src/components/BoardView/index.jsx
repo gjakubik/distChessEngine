@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 import Chess from 'chess.js';
 import { Chessboard } from 'react-chessboard';
+import makeMove from '../../services/makeMove';
+import startGame from '../../services/startGame';
 
 import Box from '@mui/material/Box';
 import Stack      from '@mui/material/Stack';
@@ -12,11 +14,15 @@ import Typography from '@mui/material/Typography';
 export default function BoardView({ boardWidth }) {
     const chessboardRef                           = useRef();
     const [game, setGame]                         = useState(new Chess());
+    console.log(game.fen());
     const [arrows, setArrows]                     = useState([]);
     const [boardOrientation, setBoardOrientation] = useState('white');
     const [engineId, setEngineId]                 = useState("");
     const [username, setUsername]                 = useState("");
     const [gameEnd, setGameEnd]                   = useState(false);
+    const [gameId, setGameId]                     = useState("");
+    const [moveNum, setMoveNum]                   = useState(0);
+    const [isLoading, setIsLoading]               = useState(false);
 
     function safeGameMutate(modify) {
         setGame((g) => {
@@ -41,7 +47,13 @@ export default function BoardView({ boardWidth }) {
         });
       }
     
-    function onDrop(sourceSquare, targetSquare) {
+    async function onDrop(sourceSquare, targetSquare) {
+        // illegal move
+        if (moveNum == 0) {
+            const newGameId = await startGame(username, engineId);
+            console.log(newGameId);
+            await setGameId(newGameId);
+        }
         const gameCopy = { ...game };
         const move = gameCopy.move({
             from: sourceSquare,
@@ -49,17 +61,30 @@ export default function BoardView({ boardWidth }) {
             promotion: 'q' // always promote to a queen for example simplicity
         });
         setGame(gameCopy);
-    
-        // illegal move
+        setMoveNum(moveNum + 1);
         if (move === null) return false;
-    
-        setTimeout(makeRandomMove, 200);
+
+        setIsLoading(true);
+        const resp = await makeMove(gameId, game.fen(), moveNum);
+        console.log(resp);
+        try {
+            safeGameMutate((game) => {
+                game.move(resp.state);
+            });
+        } catch (err) {
+            console.log("Calling the engine failed: %s\nPlaying random move", err);
+            makeRandomMove();
+        }
+        
+        setMoveNum(resp.moveNum);
+        setIsLoading(false);
         return true;
       }
 
     const resetHandler = () => {
         safeGameMutate((game) => {
             game.reset();
+            setMoveNum(0);
         });
         chessboardRef.current.clearPremoves();
     };
@@ -75,6 +100,7 @@ export default function BoardView({ boardWidth }) {
         safeGameMutate((game) => {
             game.reset();
         });
+        setMoveNum(0);
         chessboardRef.current.clearPremoves();
         setGameEnd(false);
     };

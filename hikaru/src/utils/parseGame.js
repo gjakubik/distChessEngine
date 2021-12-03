@@ -11,13 +11,11 @@ const create = async (username, engine1Id, engine2Id) => {
     try {
         const myNewObject = new Parse.Object('Game');
         myNewObject.set('username', username);
-
+        console.log(username, engine1Id);
         const Server = Parse.Object.extend('Server');
         console.log(engine1Id)
         const query = new Parse.Query(Server);
-        const engine1Obj = await query.get(engine1Id).catch((error) => {
-            console.log(error);
-        });
+        const engine1Obj = await query.get(engine1Id);
 
         console.log(engine1Obj);
         if (engine1Obj) {
@@ -43,7 +41,7 @@ const get = async (gameId) => {
     const query = new Parse.Query(Game);
     
     try {
-        const results = await query.equalTo("objectId", gameId);
+        const object = await query.get(gameId);
         
         const gameObj = {
             "username": object.get('username'),
