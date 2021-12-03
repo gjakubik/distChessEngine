@@ -212,7 +212,8 @@ def offlineMaster(client, mode, board):
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
             readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
-
+            print(readable)
+            print(f'Have received {len(client.evals)} evaluations, have {len(client.workers)} workers')
             for s in readable: # here we know that we can only get messages from a worker
                 master_recv_worker(client, s)
 
