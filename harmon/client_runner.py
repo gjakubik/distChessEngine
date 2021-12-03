@@ -180,6 +180,7 @@ def offlineMaster(client, mode, board):
             exit()
 
         print(client.stockfish.get_board_visual())
+
     else: # in cpu mode, the white side is just using general stockfish first cut moves 
         whiteMove = client.stockfish.get_best_move_time(1)
         if whiteMove == None:
@@ -204,7 +205,11 @@ def offlineMaster(client, mode, board):
         for worker, move in zip(client.workers, moves):
             response = client.assign_move(color, board_state, move, worker)
             if not response:
-                exit()
+                client.workers.remove(worker)
+                worker.close()
+                client.k -= 1
+                print(f'Lost worker {client.workers.index(worker) + 1}' )
+        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
@@ -212,6 +217,17 @@ def offlineMaster(client, mode, board):
 
             for s in readable: # here we know that we can only get messages from a worker
                 master_recv_worker(client, s)
+
+            if time.time() > client.time_out:
+                # throw out the rest of the workers :( 
+                for worker, move in zip(client.workers, moves):
+                    if not any(move in e  for e in client.evals): # if move has not been evaluated yet, throw out associated worker
+                        client.workers.remove(worker)
+                        worker.close()
+                        moves.remove(move)
+                        print(f'Received no evaluation for move: {move}')
+                        print(f'Closing worker {worker}')
+                        client.k -= 1
 
         # now we have responses from each worker --> time to choose best one (?)
         bestMove = client.eval_responses(client.evals, color)
