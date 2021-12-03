@@ -200,7 +200,7 @@ def offlineMaster(client, mode, board):
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
-                print(iter_list.index(worker))
+                print(iter_list)
                 worker.close()
                 client.k -= 1
                 if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
