@@ -26,49 +26,42 @@ def main():
         engineId = sys.argv[5]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
+    try:
+        master_host = sys.argv[6]
+        master_port = int(sys.argv[7])
+    except IndexError:
+        print('no host or port given, ok if ur starting master')
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient(role, k, id, stockfish)
+    client.engineId = engineId 
     
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        message = {
-            'method': 'POST',
-            'endpoint': '/server', 
-            'role': 'master', 
-            'host': client.host, 
-            'port': client.port, 
-            'numWorkers': k
-        }
+        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
-            client.engineId = response['engineId']
+            client.engineId = response['serverId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')
+            print(f'ERROR: Unexpected json formatting from server: {response}')'''
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
     elif role == "worker":
         # master address from server
-        client.engineId = engineId 
-        message = {
-            'method': 'GET',
-            'endpoint': f'/server/{client.engineId}', 
-            'role': 'worker', 
-            'engineId': client.engineId,
-            'id': id # this is NOT a gameID
-        }
+        '''client.engineId = engineId 
+        message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
         response = client.server_send(client.server, message)
         try:
             master_host = response['host']
             master_port = response['port']
+            client.worker.connect((master_host, master_port))
         except KeyError:
-            print(f'Server sent unexpected JSON: {response}')
-        client.engineId = engineId 
+            print(f'Server sent unexpected JSON: {response}')'''
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
@@ -98,7 +91,6 @@ def main():
                     client.workers.append(sock)
         
         print(client.stockfish.get_board_visual())
-
     while True:
         if role == 'master':
             offlineMaster(client, mode, board) # this does the stuff later in the while loop + in master_recv_server just for offline testing
@@ -114,9 +106,9 @@ def main():
                     #outputs = outputs = [ worker.worker for worker in master_client.workers ]
                     break'''
 
-            # TODO: in this block, have master client update the game server with current list of workers
-            '''if time.time() - last_update > 60:
-                response = client.workers_update()
+            '''# TODO: in this block, have master client update the game server with current list of workers
+            if time.time() - last_update > 60:
+                response = client.worker_update()
                 # TODO: error check 
                 last_update = time.time()'''
 
@@ -126,8 +118,8 @@ def main():
                 if role == 'master':
                     # readable sockets could be: server sending game state or worker sending a move evaluation or listener accepting a new connection
                     if s is client.listener:
+                        print("weee wooo weee wooo new connection alert!")
                         (sock, addr) = client.listener.accept()
-                        print(f'Accepted a new connection from: {addr}')
                         inputs.append(sock)
                         client.workers.append(sock)
                     elif s is client.server: # received message from server -- it's engine's turn to make a move
@@ -141,10 +133,10 @@ def main():
                         #pass
                     if s is client.server: # some sort of election message
                         continue
-                  
+                        
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
                         worker_recv_master(client, s)
-                      
+                        
             for s in writeable: 
                 pass
 
@@ -180,7 +172,6 @@ def offlineMaster(client, mode, board):
             exit()
 
         print(client.stockfish.get_board_visual())
-
     else: # in cpu mode, the white side is just using general stockfish first cut moves 
         whiteMove = client.stockfish.get_best_move_time(1)
         if whiteMove == None:
@@ -205,11 +196,7 @@ def offlineMaster(client, mode, board):
         for worker, move in zip(client.workers, moves):
             response = client.assign_move(color, board_state, move, worker)
             if not response:
-                client.workers.remove(worker)
-                worker.close()
-                client.k -= 1
-                print(f'Lost worker {client.workers.index(worker) + 1}' )
-        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME # give workers 3 * the amount of time it takes to calc their eval to respond
+                exit()
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
@@ -217,17 +204,6 @@ def offlineMaster(client, mode, board):
 
             for s in readable: # here we know that we can only get messages from a worker
                 master_recv_worker(client, s)
-
-            if time.time() > client.time_out:
-                # throw out the rest of the workers :( 
-                for worker, move in zip(client.workers, moves):
-                    if not any(move in e  for e in client.evals): # if move has not been evaluated yet, throw out associated worker
-                        client.workers.remove(worker)
-                        worker.close()
-                        moves.remove(move)
-                        print(f'Received no evaluation for move: {move}')
-                        print(f'Closing worker {worker}')
-                        client.k -= 1
 
         # now we have responses from each worker --> time to choose best one (?)
         bestMove = client.eval_responses(client.evals, color)
