@@ -196,10 +196,10 @@ def offlineMaster(client, mode, board):
         for worker, move in zip(client.workers, moves):
             response = client.assign_move(color, board_state, move, worker)
             if not response:
+                print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
                 worker.close()
                 client.k -= 1
-                print(f'Lost worker {client.workers.index(worker) + 1}' )
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
@@ -236,13 +236,16 @@ def offlineMaster(client, mode, board):
 
     # make moves on Board object
     board.push(chess.Move.from_uci(move['Move']))
-    print(client.stockfish.get_board_visual())
+
+    # check for insuff material draw
     if board.is_insufficient_material():
             print(f'====== DRAW: Insufficient Material =======')
             exit()
+    # check for threefold rep draw
     if board.can_claim_threefold_repetition():
         print(f'====== DRAW: threefold repetition =========')
         exit()
+
     print(client.stockfish.get_board_visual())
 
 def master_recv_server(client, s):
