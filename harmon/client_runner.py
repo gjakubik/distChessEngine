@@ -200,10 +200,9 @@ def offlineMaster(client, mode, board):
                 client.workers.remove(worker)
                 worker.close()
                 client.k -= 1
-        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME # give workers 3 * the amount of time it takes to calc their eval to respond
+        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
-        print(f'length of client.workers: {len(client.workers)}')
         while len(client.evals) < len(client.workers):
             readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
 
@@ -211,6 +210,7 @@ def offlineMaster(client, mode, board):
                 master_recv_worker(client, s)
 
             if time.time() > client.time_out:
+                print("a client timed out!")
                 # throw out the rest of the workers :( 
                 for worker, move in zip(client.workers, moves):
                     if not any(move in e for e in client.evals): # if move has not been evaluated yet, throw out associated worker
