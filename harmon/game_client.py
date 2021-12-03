@@ -24,8 +24,8 @@ class GameClient:
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
+        #self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
 
         if self.role == 'master':
             self.evals = []
@@ -128,7 +128,6 @@ class GameClient:
                         best_mate = (e[0], e[1]['value'])
 
         if abs(best_mate[1]) <= 3:
-
             return best_mate
         else:
             return max_cp
