@@ -78,6 +78,8 @@ def main():
     if role == 'master':
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
         cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
+        while cpuColor not in ["white", "black"]:
+            cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
@@ -185,7 +187,7 @@ def offlineMaster(client, mode, board, cpuColor):
             print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
             exit()
         client.stockfish.make_moves_from_current_position([singleNodeMove])
-        print(f'White move is: {singleNodeMove}')
+        print(f'{"White" if cpuColor == "black" else "Black"} move is: {singleNodeMove}')
         board.push(chess.Move.from_uci(singleNodeMove))
         print(client.stockfish.get_board_visual())
     board_state = client.stockfish.get_fen_position()
