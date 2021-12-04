@@ -49,7 +49,7 @@ app.post('/game', async (req, res) => {
         .catch((error) => {
             err = error;
         });
-    console.log(gameId);
+    
     if (err !== "") {
         res.status(400).send(err);
         return;
@@ -59,8 +59,8 @@ app.post('/game', async (req, res) => {
         res.status(402).send("Creation of game failed");
         return;
     };
-
-    res.status(200).send({"gameId": gameId});
+    console.log(JSON.stringify({"gameId": gameId}));
+    res.status(200).send(JSON.stringify({"gameId": gameId}));
 
     /*
     console.log("sending message to engine");

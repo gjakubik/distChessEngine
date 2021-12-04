@@ -25,7 +25,8 @@ export default async function startGame(username, engineId) {
             body: JSON.stringify(message),
             httpsAgent: httpsAgent
         });
-    
+        
+        console.log(resp)
         if (!resp.ok) {
             console.log()
             return {}
