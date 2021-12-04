@@ -124,7 +124,7 @@ class GameClient:
                 elif e[1]['type'] == 'mate':
                     if e[1]['value'] > best_mate[1] and e[1]['value'] < 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
-        if abs(best_mate[1]) <= 3:
+        if abs(best_mate[1]) != math.inf: # if we got any moves w/ a mate, we use them 
             return best_mate
         else:
             # print out the cp values of given moves
