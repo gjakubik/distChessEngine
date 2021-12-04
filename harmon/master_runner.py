@@ -31,10 +31,11 @@ def main():
     print(f'Host: {client.host}  Port: {client.port}')
     # get engine id from server
     if online:
+        print('playing in online mode')
         message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
-            client.engineId = response['serverId']
+            client.engineId = response['engineId']
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
             print(f'ERROR: Unexpected json formatting from server: {response}')
@@ -49,16 +50,18 @@ def main():
     print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
     last_update = time.time()
-    mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
-    cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
-    while cpuColor not in ["white", "black"]:
-        cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
-    
-    board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    board = chess.Board(board_state) # this is the python-chess board
-    client.stockfish.set_fen_position(board_state)
-    board_state = client.stockfish.get_fen_position()
-    print(board_state)
+    if not online:
+        mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
+        cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
+        while cpuColor not in ["white", "black"]:
+            cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
+        
+        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        board = chess.Board(board_state) # this is the python-chess board
+        client.stockfish.set_fen_position(board_state)
+        board_state = client.stockfish.get_fen_position()
+        print(board_state)
+
     while len(client.workers) < k:
         readable, writeable, exceptional = select.select(inputs, outputs, inputs)
         for s in readable:
@@ -68,10 +71,10 @@ def main():
                 inputs.append(sock)
                 client.workers.append(sock)
     print(client.stockfish.get_board_visual())
+
     while True:
         if not online:
             offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
-        
 
         try:
             '''# TODO: in this block, have master client update the game server with current list of workers
