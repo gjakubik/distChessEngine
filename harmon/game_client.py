@@ -127,6 +127,9 @@ class GameClient:
         if abs(best_mate[1]) <= 3:
             return best_mate
         else:
+            # print out the cp values of given moves
+            for e in evals:
+                print(e[1]['value'])
             return max_cp
 
     def eval_move(self, board_state, move, depth, time):
