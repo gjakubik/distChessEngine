@@ -77,7 +77,7 @@ def main():
     last_update = time.time()
     if role == 'master':
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
-        cpu_color = input(f'Which color do you want the distributed AI to play with?: ')
+        cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
@@ -95,7 +95,7 @@ def main():
         print(client.stockfish.get_board_visual())
     while True:
         if role == 'master':
-            offlineMaster(client, mode, board) # this does the stuff later in the while loop + in master_recv_server just for offline testing
+            offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
             continue
 
         try:
