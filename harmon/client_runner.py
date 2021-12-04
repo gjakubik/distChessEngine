@@ -245,10 +245,10 @@ def offlineMaster(client, mode, board):
             bestMove = moves[0]
     else:
         # just use first move 
-        move = moves[0]
-    if move == None:
+        bestMove = moves[0]
+    if bestMove == None:
         print(moves)
-    print(f'Computer (black) move is: {move}')
+    print(f'Computer (black) move is: {bestMove}')
     if evaluation != {}:
         print(f'Evaluation for computer move: {evaluation}')
     
@@ -336,7 +336,8 @@ def worker_recv_master(client, s):
         type = message['type']
     except KeyError and TypeError:
         print(f'Master send bad formed JSON: {message}')
-        # TODO handle this
+        # master failed -- need to trigger an election
+
     if type == 'move':
         color = message['color']
         board_state = message['board_state']
@@ -348,9 +349,9 @@ def worker_recv_master(client, s):
         # evaluate the move and send the evaluation to the master
         eval_message = client.eval_move(board_state, move, DEPTH, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
         if not client.send(s, eval_message):
-            # master failed
-            # handle this error
+            # master failed -- need to trigger an election
             pass
+
 
 def master_recv_worker(client, s):
     message = client.receive(s)
