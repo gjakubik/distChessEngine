@@ -142,7 +142,7 @@ class GameClient:
             self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {next_move}')
         evaluation = self.stockfish.get_evaluation()
-        message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move['Move'], 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
+        message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return message
 
     def gen_moves(self):
