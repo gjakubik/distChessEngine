@@ -111,7 +111,7 @@ class GameClient:
                     if e[1]['value'] > max_cp[1]:
                         max_cp = (e[0], e[1]['value']) 
                 elif e[1]['type'] == 'mate':
-                    if e[1]['value'] < best_mate[1] and e[1]['value'] > 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
+                    if e[1]['value'] < best_mate[1] and e[1]['value'] >= 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
         else:
             # negative is favorable (advantage black)
@@ -122,7 +122,7 @@ class GameClient:
                     if e[1]['value'] < max_cp[1]: 
                         max_cp = (e[0], e[1]['value'])
                 elif e[1]['type'] == 'mate':
-                    if e[1]['value'] > best_mate[1] and e[1]['value'] < 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
+                    if e[1]['value'] > best_mate[1] and e[1]['value'] <= 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
         if abs(best_mate[1]) != math.inf: # if we got any moves w/ a mate, we use them 
             return best_mate
