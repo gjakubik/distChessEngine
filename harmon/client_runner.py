@@ -191,7 +191,7 @@ def offlineMaster(client, mode, board, cpuColor):
     board_state = client.stockfish.get_fen_position()
     
     if cpuColor == 'black':
-        distCpuTurn(client, board, board_state, cpuColor)
+        distCpuTurn(client, board_state, board, cpuColor)
         print(client.stockfish.get_board_visual())
 
     # check for insuff material draw
