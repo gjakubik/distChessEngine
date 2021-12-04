@@ -17,6 +17,8 @@ ENGINE_TIME = 100 # milliseconds
 ENCODING = 'utf8'
 
 
+
+
 def main():
     # parse argv
     stockfish_path = sys.argv[1]
