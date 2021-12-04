@@ -23,13 +23,14 @@ def main():
     role = sys.argv[2] # master or worker
     id = int(sys.argv[3])
     k = int(sys.argv[4])
+    online = sys.argv[5] # user must pass in True or False to indicate if wanna play in offline mode or not
     try:
-        engineId = sys.argv[5]
+        engineId = sys.argv[6]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
     try:
-        master_host = sys.argv[6]
-        master_port = int(sys.argv[7])
+        master_host = sys.argv[7]
+        master_port = int(sys.argv[8])
     except IndexError:
         print('no host or port given, ok if ur starting master')
 
@@ -42,27 +43,29 @@ def main():
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
-        response = client.server_send(client.server, message)
-        try:
-            client.engineId = response['serverId']
-            print(f'Registered the engine. Engine ID: {client.engineId}')
-        except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+        if online:
+            message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+            response = client.server_send(client.server, message)
+            try:
+                client.engineId = response['serverId']
+                print(f'Registered the engine. Engine ID: {client.engineId}')
+            except KeyError:
+                print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
     elif role == "worker":
         # master address from server
-        '''client.engineId = engineId 
-        message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
-        response = client.server_send(client.server, message)
-        try:
-            master_host = response['host']
-            master_port = response['port']
-            client.worker.connect((master_host, master_port))
-        except KeyError:
-            print(f'Server sent unexpected JSON: {response}')'''
+        if online:
+            client.engineId = engineId 
+            message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
+            response = client.server_send(client.server, message)
+            try:
+                master_host = response['host']
+                master_port = response['port']
+                client.worker.connect((master_host, master_port))
+            except KeyError:
+                print(f'Server sent unexpected JSON: {response}')
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
@@ -80,6 +83,7 @@ def main():
         cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
         while cpuColor not in ["white", "black"]:
             cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
+        
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
@@ -93,7 +97,6 @@ def main():
                     (sock, addr) = client.listener.accept()
                     inputs.append(sock)
                     client.workers.append(sock)
-        
         print(client.stockfish.get_board_visual())
     while True:
         if role == 'master':
@@ -101,15 +104,6 @@ def main():
             continue
 
         try:
-            # check for a new master -- TODO fix this to reflect distribution
-            '''for worker in master_client.workers:
-                if worker.role == 'master':
-                    master_client = worker
-                    master_client.workers.remove(worker)
-                    inputs = [worker.worker for worker in master_client.workers] + [master_client.listener] + [worker.server for worker in master_client.workers ] + [master_client.server]
-                    #outputs = outputs = [ worker.worker for worker in master_client.workers ]
-                    break'''
-
             '''# TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
                 response = client.worker_update()
