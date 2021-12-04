@@ -207,6 +207,7 @@ class GameClient:
             message_len = int(message_len.decode(ENCODING))
         except ValueError:
             print("value error")
+            print(message_len)
             return False
         while bytes_rec < message_len:
             chunk = client.recv(message_len - bytes_rec)
