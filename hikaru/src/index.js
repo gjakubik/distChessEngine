@@ -96,8 +96,8 @@ app.post('/move', async (req, res) => {
     try {
         console.log("moving");
         // TODO: Put user move in parse
-        const playerMove = await move.create(req.body.gameId, req.body.state, req.body.moveNum);
-        const gameObj = await game.get(req.body.gameId);
+        //const playerMove = await move.create(req.body.gameId, req.body.state, req.body.moveNum);
+        //const gameObj = await game.get(req.body.gameId);
         const serverObj = await server.get(gameObj.engine1);
         const message = {
             ...req.body,
@@ -108,7 +108,7 @@ app.post('/move', async (req, res) => {
         const engineResp = await tcp.sendTCP(message);
 
         // TODO: Put engine move in parse
-        const engineMove = await move.create(req.body.gameId, engineResp.state, engineResp.moveNum);
+        //const engineMove = await move.create(req.body.gameId, engineResp.state, engineResp.moveNum);
         // TODO: Send engine move as response to user
         res.status(200).send(engineResp);
     } catch (err) {

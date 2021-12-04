@@ -17,6 +17,22 @@ export default async function makeMove(gameId, state, moveNum) {
         };
         // function to register server
         console.log(message);
+
+        const headers = {
+            'Content-Type': 'text/plain',
+            'Access-Control-Allow-Origin': "*",
+        }
+
+        axios.post(API_BASE_URL + endpoint, JSON.stringify(message), { headers: headers})
+            .then((resp) => {
+                console.log(resp);
+                return resp.json();
+            })
+            .catch((err) => {
+                console.log(err);
+                return "";
+            });
+        /*
         const resp = await fetch(API_BASE_URL + endpoint, {
             method: 'POST',
             mode: 'no-cors',
@@ -33,6 +49,7 @@ export default async function makeMove(gameId, state, moveNum) {
         }
         console.log(resp.json());
         return resp.json()
+        */
     } catch (err) {
         console.log(err);
         return {}

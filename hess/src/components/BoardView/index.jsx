@@ -48,13 +48,19 @@ export default function BoardView({ boardWidth }) {
       }
     
     async function onDrop(sourceSquare, targetSquare) {
-        
+        /*
         var newGameId = '';
         if (moveNum == 0) {
-            newGameId = await startGame(username, engineId);
-            console.log(newGameId);
-            setGameId(newGameId);
+            startGame(username, engineId)
+                .then((newId) => {
+                    console.log(newId);
+                    setGameId(newId);
+                }).catch((err) => {
+                    console.log(err);
+                });
         }
+        */
+
         const gameCopy = { ...game };
         const move = gameCopy.move({
             from: sourceSquare,
@@ -66,9 +72,7 @@ export default function BoardView({ boardWidth }) {
         if (move === null) return false;
 
         setIsLoading(true);
-        console.log(newGameId)
-        while (newGameId === '') { continue }
-        const resp = await makeMove(newGameId, game.fen(), moveNum);
+        const resp = await makeMove("", game.fen(), moveNum);
         console.log(resp);
         try {
             safeGameMutate((game) => {
@@ -82,7 +86,9 @@ export default function BoardView({ boardWidth }) {
         setMoveNum(resp.moveNum);
         setIsLoading(false);
         return true;
-      }
+    }
+
+
 
     const resetHandler = () => {
         safeGameMutate((game) => {
