@@ -32,7 +32,7 @@ def main():
     # get engine id from server
     if online:
         print('playing in online mode')
-        message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+        message = {'endpoint': '/server', 'method': "POST", 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
         response = client.server_send(client.server, message)
         try:
             client.engineId = response['engineId']
