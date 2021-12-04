@@ -106,6 +106,7 @@ app.post('/move', async (req, res) => {
         }
         // TODO: Send move to engine
         const engineResp = await tcp.sendTCP(message);
+        console.log(engineResp);
 
         // TODO: Put engine move in parse
         //const engineMove = await move.create(req.body.gameId, engineResp.state, engineResp.moveNum);

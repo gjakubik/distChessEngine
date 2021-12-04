@@ -1,4 +1,5 @@
 import https from 'https';
+import axios from 'axios';
 
 const API_BASE_URL = 'https://gavinjakubik.me:5050/'
 const endpoint = 'move/'
@@ -26,7 +27,7 @@ export default async function makeMove(gameId, state, moveNum) {
         axios.post(API_BASE_URL + endpoint, JSON.stringify(message), { headers: headers})
             .then((resp) => {
                 console.log(resp);
-                return resp.json();
+                return resp;
             })
             .catch((err) => {
                 console.log(err);

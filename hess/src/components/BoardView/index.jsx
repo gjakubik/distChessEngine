@@ -47,7 +47,7 @@ export default function BoardView({ boardWidth }) {
         });
       }
     
-    async function onDrop(sourceSquare, targetSquare) {
+    function onDrop(sourceSquare, targetSquare) {
         /*
         var newGameId = '';
         if (moveNum == 0) {
@@ -72,20 +72,21 @@ export default function BoardView({ boardWidth }) {
         if (move === null) return false;
 
         setIsLoading(true);
-        const resp = await makeMove("", game.fen(), moveNum);
-        console.log(resp);
-        try {
-            safeGameMutate((game) => {
-                game.move(resp.state);
+        makeMove("", game.fen(), moveNum)
+            .then((resp) => {
+                console.log(resp);
+                try {
+                    safeGameMutate((game) => {
+                        game.move(JSON.parse(resp).state);
+                    });
+                } catch (err) {
+                    console.log("Calling the engine failed: %s\nPlaying random move", err);
+                    makeRandomMove();
+                }
+                setMoveNum(JSON.parse(resp).state);
+                setIsLoading(false);
+                return true;
             });
-        } catch (err) {
-            console.log("Calling the engine failed: %s\nPlaying random move", err);
-            makeRandomMove();
-        }
-        
-        setMoveNum(resp.moveNum);
-        setIsLoading(false);
-        return true;
     }
 
 
