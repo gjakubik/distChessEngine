@@ -47,14 +47,20 @@ export default function BoardView({ boardWidth }) {
         });
       }
     
-    async function onDrop(sourceSquare, targetSquare) {
-        
+    function onDrop(sourceSquare, targetSquare) {
+        /*
         var newGameId = '';
         if (moveNum == 0) {
-            newGameId = await startGame(username, engineId);
-            console.log(newGameId);
-            setGameId(newGameId);
+            startGame(username, engineId)
+                .then((newId) => {
+                    console.log(newId);
+                    setGameId(newId);
+                }).catch((err) => {
+                    console.log(err);
+                });
         }
+        */
+
         const gameCopy = { ...game };
         const move = gameCopy.move({
             from: sourceSquare,
@@ -66,23 +72,24 @@ export default function BoardView({ boardWidth }) {
         if (move === null) return false;
 
         setIsLoading(true);
-        console.log(newGameId)
-        while (newGameId === '') { continue }
-        const resp = await makeMove(newGameId, game.fen(), moveNum);
-        console.log(resp);
-        try {
-            safeGameMutate((game) => {
-                game.move(resp.state);
+        makeMove("", game.fen(), moveNum)
+            .then((resp) => {
+                console.log(resp);
+                try {
+                    safeGameMutate((game) => {
+                        game.move(JSON.parse(resp).state);
+                    });
+                } catch (err) {
+                    console.log("Calling the engine failed: %s\nPlaying random move", err);
+                    makeRandomMove();
+                }
+                setMoveNum(JSON.parse(resp).state);
+                setIsLoading(false);
+                return true;
             });
-        } catch (err) {
-            console.log("Calling the engine failed: %s\nPlaying random move", err);
-            makeRandomMove();
-        }
-        
-        setMoveNum(resp.moveNum);
-        setIsLoading(false);
-        return true;
-      }
+    }
+
+
 
     const resetHandler = () => {
         safeGameMutate((game) => {

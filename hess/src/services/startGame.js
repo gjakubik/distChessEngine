@@ -24,7 +24,7 @@ export default async function startGame(username, engineId) {
         axios.post(API_BASE_URL + endpoint, JSON.stringify(message), { headers: headers})
             .then((resp) => {
                 console.log(resp);
-                return resp.json().gameId;
+                return JSON.parse(resp.data).gameId;
             })
             .catch((err) => {
                 console.log(err);
