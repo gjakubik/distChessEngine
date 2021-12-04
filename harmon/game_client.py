@@ -99,9 +99,9 @@ class GameClient:
         pass
 
     def eval_responses(self, evals, color):
-                # TODO check the data structure of this stuff
-        # evals is a list of (move, evaluation) tuples
-        # returns a tuple of (move, evaluation)
+        # evals is a list of (move, evaluation) tuples -- returns a tuple of (move, evaluation)
+        
+        print(evals)
         if color == 'white': 
             # positive is favorable (advantage white)
             max_cp = (None, (-1) * math.inf)
@@ -111,7 +111,7 @@ class GameClient:
                     if e[1]['value'] > max_cp[1]:
                         max_cp = (e[0], e[1]['value']) 
                 elif e[1]['type'] == 'mate':
-                    if e[1]['value'] < best_mate[1] and e[1]['value'] > 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
+                    if e[1]['value'] < best_mate[1] and e[1]['value'] >= 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
         else:
             # negative is favorable (advantage black)
@@ -122,11 +122,14 @@ class GameClient:
                     if e[1]['value'] < max_cp[1]: 
                         max_cp = (e[0], e[1]['value'])
                 elif e[1]['type'] == 'mate':
-                    if e[1]['value'] > best_mate[1] and e[1]['value'] < 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
+                    if e[1]['value'] > best_mate[1] and e[1]['value'] <= 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
                         best_mate = (e[0], e[1]['value'])
-        if abs(best_mate[1]) <= 3:
+        if abs(best_mate[1]) != math.inf: # if we got any moves w/ a mate, we use them 
             return best_mate
         else:
+            # print out the cp values of given moves
+            for e in evals:
+                print(e[1]['value'])
             return max_cp
 
     def eval_move(self, board_state, move, depth, time):
@@ -134,13 +137,13 @@ class GameClient:
 
         self.stockfish.set_fen_position(board_state)
         print(move)
-        self.stockfish.make_moves_from_current_position([move])
+        self.stockfish.make_moves_from_current_position([move['Move']])
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
+            if next_move == None: 
+                break
             self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {next_move}')
-            if next_move == None:
-                break
         evaluation = self.stockfish.get_evaluation()
         message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return message
@@ -188,7 +191,6 @@ class GameClient:
         client.sendall(len_message)
 
         # send the actual message 
-        print(f'sending {message}')
         client.sendall(message)
 
         # get the actual response
@@ -208,6 +210,7 @@ class GameClient:
             message_len = int(message_len.decode(ENCODING))
         except ValueError:
             print("value error")
+            print(message_len)
             return False
         while bytes_rec < message_len:
             chunk = client.recv(message_len - bytes_rec)
