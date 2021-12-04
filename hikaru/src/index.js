@@ -105,6 +105,7 @@ app.post('/move', async (req, res) => {
             "port": serverObj.port
         }
         // TODO: Send move to engine
+        console.log("sending TCP")
         const engineResp = await tcp.sendTCP(message);
         console.log(engineResp);
 
