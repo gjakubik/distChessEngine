@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # imports
+from re import L
 import sys
 import time
 from stockfish import Stockfish
@@ -76,6 +77,7 @@ def main():
     last_update = time.time()
     if role == 'master':
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
+        cpu_color = input(f'Which color do you want the distributed AI to play with?: ')
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
@@ -150,14 +152,18 @@ def main():
                 exit()
 
 # "offline" just means no frontend server
-def offlineMaster(client, mode, board):
+def offlineMaster(client, mode, board, cpuColor):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
+    if cpuColor == 'white':
+        distCpuTurn()
+        color = 'black'
+
     if mode == 'user':
         # prompt user for move
         userMove = input('Please enter a move: ')
         if userMove == 'resign':
-            print(f'===== GAME OVER ====== \n ===== BLACK WINS =====')
+            print(f'===== GAME OVER ====== \n===== CPU WINS =====')
             exit()
         while not client.stockfish.is_move_correct(userMove):
             print(f'userMove is not valid. Moves must be of format: e2e4')
@@ -172,18 +178,34 @@ def offlineMaster(client, mode, board):
             exit()
 
         print(client.stockfish.get_board_visual())
-    else: # in cpu mode, the white side is just using general stockfish first cut moves 
-        whiteMove = client.stockfish.get_best_move_time(1)
-        if whiteMove == None:
+    else: # in cpu mode, the the non distributed side is just playing with single node stockfish
+        singleNodeMove = client.stockfish.get_best_move_time(1)
+        if singleNodeMove == None:
             print(f'==== CHECKMATE ==== \n === BLACK WINS! ===')
             exit()
-        client.stockfish.make_moves_from_current_position([whiteMove])
-        print(f'White move is: {whiteMove}')
-        board.push(chess.Move.from_uci(whiteMove))
+        client.stockfish.make_moves_from_current_position([singleNodeMove])
+        print(f'White move is: {singleNodeMove}')
+        board.push(chess.Move.from_uci(singleNodeMove))
         print(client.stockfish.get_board_visual())
-    color = "black"
     board_state = client.stockfish.get_fen_position()
+    
+    if cpuColor == 'black':
+        distCpuTurn(client, board, board_state, cpuColor)
 
+    # check for insuff material draw
+    if board.is_insufficient_material():
+            print(f'====== DRAW: Insufficient Material =======')
+            exit()
+    # check for threefold rep draw
+    if board.can_claim_threefold_repetition():
+        print(f'====== DRAW: threefold repetition =========')
+        exit()
+    # print board state after these two turns
+    print(client.stockfish.get_board_visual())
+
+# code to decide move on distributed CPU's turn
+def distCpuTurn(client, board_state, board, cpuColor):
+    
     # generate k moves for computer, check that they are all valid
     move = ''
     moves = client.gen_moves()
@@ -196,7 +218,7 @@ def offlineMaster(client, mode, board):
         iter_list = zip(list(client.workers), list(moves))  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
         for worker, move in iter_list:
             print(f'Sending {move}')
-            response = client.assign_move(color, board_state, move, worker)
+            response = client.assign_move(cpuColor, board_state, move, worker)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
@@ -238,7 +260,7 @@ def offlineMaster(client, mode, board):
 
         # now we have responses from each worker --> time to choose best one 
         if len(client.evals) >= 1:
-            bestMove = client.eval_responses(client.evals, color) 
+            bestMove = client.eval_responses(client.evals, cpuColor) 
             move = bestMove[0]
             evaluation = bestMove[1]
         else:
@@ -256,17 +278,6 @@ def offlineMaster(client, mode, board):
 
     # make moves on Board object
     board.push(chess.Move.from_uci(move['Move']))
-
-    # check for insuff material draw
-    if board.is_insufficient_material():
-            print(f'====== DRAW: Insufficient Material =======')
-            exit()
-    # check for threefold rep draw
-    if board.can_claim_threefold_repetition():
-        print(f'====== DRAW: threefold repetition =========')
-        exit()
-
-    print(client.stockfish.get_board_visual())
 
 def master_recv_server(client, s):
     message = client.receive(s)
