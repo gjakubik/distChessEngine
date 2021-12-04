@@ -202,7 +202,6 @@ def offlineMaster(client, mode, board):
                 client.workers.remove(worker)
                 worker.close()
                 client.k -= 1
-                print(len(moves))
                 if len(moves) > 1: # try to remove the assigned move from the list, if it's the only one, we have to choose it 
                     moves.remove(move)
                 else:
@@ -251,6 +250,7 @@ def offlineMaster(client, mode, board):
     print(f'Computer (black) move is: {move}')
     if evaluation != {}:
         print(f'Evaluation for computer move: {evaluation}')
+    
     client.stockfish.make_moves_from_current_position([move['Move']])
 
     # make moves on Board object
@@ -359,6 +359,7 @@ def master_recv_worker(client, s):
         print(f'Worker sent bad JSON: {message}')
         client.workers.remove(s)
         s.close()
+        return
     
     if type == 'evaluation':
         move = message['move']
