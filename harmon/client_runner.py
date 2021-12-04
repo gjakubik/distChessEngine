@@ -156,7 +156,7 @@ def offlineMaster(client, mode, board, cpuColor):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
     if cpuColor == 'white':
-        distCpuTurn()
+        distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor)
         color = 'black'
 
     if mode == 'user':
