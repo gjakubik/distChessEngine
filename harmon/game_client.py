@@ -137,10 +137,10 @@ class GameClient:
         self.stockfish.make_moves_from_current_position([move])
         for i in range(depth):
             next_move = self.stockfish.get_best_move_time(time)
+            if next_move == None: 
+                break
             self.stockfish.make_moves_from_current_position([next_move])
             print(f'Move: {next_move}')
-            if next_move == None:
-                break
         evaluation = self.stockfish.get_evaluation()
         message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return message
