@@ -188,7 +188,6 @@ class GameClient:
         client.sendall(len_message)
 
         # send the actual message 
-        print(f'sending {message}')
         client.sendall(message)
 
         # get the actual response
