@@ -237,12 +237,12 @@ def offlineMaster(client, mode, board):
                 break
 
         # now we have responses from each worker --> time to choose best one 
-        if len(client.evals) > 1:
-            bestMove = client.eval_responses(client.evals, color)
+        if len(client.evals) >= 1:
+            bestMove = client.eval_responses(client.evals, color) 
+            move = bestMove[0]
+            evaluation = bestMove[1]
         else:
-            bestMove = client.evals[0]
-        move = bestMove[0]
-        evaluation = bestMove[1]
+            bestMove = moves[0]
     else:
         # just use first move 
         move = moves[0]
@@ -360,7 +360,7 @@ def master_recv_worker(client, s):
         print(f'Worker sent bad JSON: {message}')
         client.workers.remove(s)
         s.close()
-        return
+        return False
     
     if type == 'evaluation':
         move = message['move']
@@ -378,7 +378,7 @@ def master_recv_worker(client, s):
             print(move)
             message = json.loads(message)
             #client.server_send(client.server, message.encode(ENCODING)) # TODO capture response to this '''
-
+    return True
 
 if __name__ == '__main__':
     main()
