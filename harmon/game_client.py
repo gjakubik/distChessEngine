@@ -99,9 +99,9 @@ class GameClient:
         pass
 
     def eval_responses(self, evals, color):
-                # TODO check the data structure of this stuff
-        # evals is a list of (move, evaluation) tuples
-        # returns a tuple of (move, evaluation)
+        # evals is a list of (move, evaluation) tuples -- returns a tuple of (move, evaluation)
+        
+        print(evals)
         if color == 'white': 
             # positive is favorable (advantage white)
             max_cp = (None, (-1) * math.inf)
