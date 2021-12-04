@@ -3,6 +3,7 @@ const express = require('express');
 const fs      = require('fs');
 const https   = require('https');
 const net     = require('net');
+const cors    = require('cors');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
 const move    = require('./utils/parseMove');
@@ -13,6 +14,7 @@ const app = express();
 app.use(express.json({
     type: ['application/json', 'text/plain']
   }));
+app.use(cors())
 
 // Set view engine for home route html rendering
 app.set('view engine', 'pug');
@@ -49,7 +51,7 @@ app.post('/game', async (req, res) => {
         .catch((error) => {
             err = error;
         });
-    console.log(gameId);
+    
     if (err !== "") {
         res.status(400).send(err);
         return;
@@ -59,8 +61,8 @@ app.post('/game', async (req, res) => {
         res.status(402).send("Creation of game failed");
         return;
     };
-
-    res.status(200).send({"gameId": gameId});
+    console.log(JSON.stringify({"gameId": gameId}));
+    res.status(200).send(JSON.stringify({"gameId": gameId}));
 
     /*
     console.log("sending message to engine");
