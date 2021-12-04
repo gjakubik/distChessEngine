@@ -164,7 +164,7 @@ def offlineMaster(client, mode, board, cpuColor):
         # prompt user for move
         userMove = input('Please enter a move: ')
         if userMove == 'resign':
-            print(f'===== GAME OVER ====== \n===== CPU WINS =====')
+            print(f'===== GAME OVER ====== \n===== {cpuColor} WINS =====')
             exit()
         while not client.stockfish.is_move_correct(userMove):
             print(f'userMove is not valid. Moves must be of format: e2e4')
@@ -182,7 +182,7 @@ def offlineMaster(client, mode, board, cpuColor):
     else: # in cpu mode, the the non distributed side is just playing with single node stockfish
         singleNodeMove = client.stockfish.get_best_move_time(1)
         if singleNodeMove == None:
-            print(f'==== CHECKMATE ==== \n === BLACK WINS! ===')
+            print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
             exit()
         client.stockfish.make_moves_from_current_position([singleNodeMove])
         print(f'White move is: {singleNodeMove}')
@@ -210,7 +210,7 @@ def distCpuTurn(client, board_state, board, cpuColor):
     move = ''
     moves = client.gen_moves()
     if len(moves) < 1:
-        print(f'==== CHECKMATE ==== \n === WHITE WINS! ===')
+        print(f'==== CHECKMATE ==== \n=== {"BLACK" if cpuColor == "white" else "WHITE"} WINS! ===')
         exit()
     evaluation = {}
     if len(client.workers) > 0:
@@ -270,9 +270,9 @@ def distCpuTurn(client, board_state, board, cpuColor):
         bestMove = moves[0]
     if bestMove == None:
         print(moves)
-    print(f'Computer (black) move is: {bestMove}')
+    print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
     if evaluation != {}:
-        print(f'Evaluation for computer move: {evaluation}')
+        print(f'Evaluation for move: {evaluation}')
     
     client.stockfish.make_moves_from_current_position([move['Move']])
 
