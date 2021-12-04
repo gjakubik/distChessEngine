@@ -18,7 +18,6 @@ const sendTCP =  (message, timeout) => {
             socket.write(JSON.stringify(message));
         });
 
-        console.log("data handler");
         socket.on("data", data => {
             console.log("Recieved data: ", data.toString('utf-8'));
             resolve(data.toString('utf-8'));
