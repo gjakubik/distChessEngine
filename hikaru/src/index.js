@@ -3,6 +3,7 @@ const express = require('express');
 const fs      = require('fs');
 const https   = require('https');
 const net     = require('net');
+const cors    = require('cors');
 const server  = require('./utils/parseServer');
 const game    = require('./utils/parseGame');
 const move    = require('./utils/parseMove');
@@ -13,6 +14,7 @@ const app = express();
 app.use(express.json({
     type: ['application/json', 'text/plain']
   }));
+app.use(cors())
 
 // Set view engine for home route html rendering
 app.set('view engine', 'pug');

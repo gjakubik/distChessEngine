@@ -1,4 +1,5 @@
 import https from 'https';
+import axios from 'axios';
 
 const API_BASE_URL = 'https://gavinjakubik.me:5050'
 const endpoint = '/game'
@@ -15,8 +16,23 @@ export default async function startGame(username, engineId) {
             "endpoint": ""
         };
         console.log(message);
+        const headers = {
+            'Content-Type': 'text/plain',
+            'Access-Control-Allow-Origin': "*",
+        }
+
+        axios.post(API_BASE_URL + endpoint, JSON.stringify(message), { headers: headers})
+            .then((resp) => {
+                console.log(resp);
+                return resp.json().gameId;
+            })
+            .catch((err) => {
+                console.log(err);
+                return "";
+            });
+        /*
         // function to register server
-        const resp = await fetch(API_BASE_URL + endpoint, {
+       fetch(API_BASE_URL + endpoint, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -24,18 +40,18 @@ export default async function startGame(username, engineId) {
             },
             body: JSON.stringify(message),
             httpsAgent: httpsAgent
-        });
-        
-        console.log(resp)
-        if (!resp.ok) {
-            console.log()
-            return {}
-        }
-        
-        console.log(resp.json());
-        return resp.json().gameId
+        })
+            .then((resp) => {
+                console.log(resp);
+                return resp.json().gameId;
+            })
+            .catch((err) => {
+                console.log(err);
+                return "";
+            });
+        */
     } catch (err) {
         console.log(err);
-        return {}
+        return "";
     }
 }
