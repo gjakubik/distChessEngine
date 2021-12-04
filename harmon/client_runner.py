@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # imports
+from re import L
 import sys
 import time
 from stockfish import Stockfish
@@ -22,13 +23,14 @@ def main():
     role = sys.argv[2] # master or worker
     id = int(sys.argv[3])
     k = int(sys.argv[4])
+    online = sys.argv[5] # user must pass in True or False to indicate if wanna play in offline mode or not
     try:
-        engineId = sys.argv[5]
+        engineId = sys.argv[6]
     except IndexError:
         print('no engine id given, this is ok if you\'re starting a master')
     try:
-        master_host = sys.argv[6]
-        master_port = int(sys.argv[7])
+        master_host = sys.argv[7]
+        master_port = int(sys.argv[8])
     except IndexError:
         print('no host or port given, ok if ur starting master')
 
@@ -41,27 +43,29 @@ def main():
     if role == "master":
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
-        '''message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
-        response = client.server_send(client.server, message)
-        try:
-            client.engineId = response['serverId']
-            print(f'Registered the engine. Engine ID: {client.engineId}')
-        except KeyError:
-            print(f'ERROR: Unexpected json formatting from server: {response}')'''
+        if online:
+            message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+            response = client.server_send(client.server, message)
+            try:
+                client.engineId = response['serverId']
+                print(f'Registered the engine. Engine ID: {client.engineId}')
+            except KeyError:
+                print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
     elif role == "worker":
         # master address from server
-        '''client.engineId = engineId 
-        message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
-        response = client.server_send(client.server, message)
-        try:
-            master_host = response['host']
-            master_port = response['port']
-            client.worker.connect((master_host, master_port))
-        except KeyError:
-            print(f'Server sent unexpected JSON: {response}')'''
+        if online:
+            client.engineId = engineId 
+            message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
+            response = client.server_send(client.server, message)
+            try:
+                master_host = response['host']
+                master_port = response['port']
+                client.worker.connect((master_host, master_port))
+            except KeyError:
+                print(f'Server sent unexpected JSON: {response}')
         client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
@@ -76,6 +80,10 @@ def main():
     last_update = time.time()
     if role == 'master':
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
+        cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
+        while cpuColor not in ["white", "black"]:
+            cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
+        
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
@@ -89,23 +97,13 @@ def main():
                     (sock, addr) = client.listener.accept()
                     inputs.append(sock)
                     client.workers.append(sock)
-        
         print(client.stockfish.get_board_visual())
     while True:
         if role == 'master':
-            offlineMaster(client, mode, board) # this does the stuff later in the while loop + in master_recv_server just for offline testing
+            offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
             continue
 
         try:
-            # check for a new master -- TODO fix this to reflect distribution
-            '''for worker in master_client.workers:
-                if worker.role == 'master':
-                    master_client = worker
-                    master_client.workers.remove(worker)
-                    inputs = [worker.worker for worker in master_client.workers] + [master_client.listener] + [worker.server for worker in master_client.workers ] + [master_client.server]
-                    #outputs = outputs = [ worker.worker for worker in master_client.workers ]
-                    break'''
-
             '''# TODO: in this block, have master client update the game server with current list of workers
             if time.time() - last_update > 60:
                 response = client.worker_update()
@@ -150,14 +148,19 @@ def main():
                 exit()
 
 # "offline" just means no frontend server
-def offlineMaster(client, mode, board):
+def offlineMaster(client, mode, board, cpuColor):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
+    if cpuColor == 'white':
+        distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor)
+        color = 'black'
+        print(client.stockfish.get_board_visual())
+
     if mode == 'user':
         # prompt user for move
         userMove = input('Please enter a move: ')
         if userMove == 'resign':
-            print(f'===== GAME OVER ====== \n ===== BLACK WINS =====')
+            print(f'===== GAME OVER ====== \n===== {cpuColor} WINS =====')
             exit()
         while not client.stockfish.is_move_correct(userMove):
             print(f'userMove is not valid. Moves must be of format: e2e4')
@@ -168,34 +171,50 @@ def offlineMaster(client, mode, board):
             print(f'====== DRAW: Insufficient Material =======')
             exit()
         if board.can_claim_threefold_repetition():
-            print(f'====== DRAW: threefold repetition')
+            print(f'====== DRAW: threefold repetition ======')
             exit()
 
         print(client.stockfish.get_board_visual())
-    else: # in cpu mode, the white side is just using general stockfish first cut moves 
-        whiteMove = client.stockfish.get_best_move_time(1)
-        if whiteMove == None:
-            print(f'==== CHECKMATE ==== \n === BLACK WINS! ===')
+    else: # in cpu mode, the the non distributed side is just playing with single node stockfish
+        singleNodeMove = client.stockfish.get_best_move_time(1)
+        if singleNodeMove == None:
+            print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
             exit()
-        client.stockfish.make_moves_from_current_position([whiteMove])
-        print(f'White move is: {whiteMove}')
-        board.push(chess.Move.from_uci(whiteMove))
+        client.stockfish.make_moves_from_current_position([singleNodeMove])
+        print(f'{"White" if cpuColor == "black" else "Black"} move is: {singleNodeMove}')
+        board.push(chess.Move.from_uci(singleNodeMove))
         print(client.stockfish.get_board_visual())
-    color = "black"
     board_state = client.stockfish.get_fen_position()
+    
+    if cpuColor == 'black':
+        distCpuTurn(client, board_state, board, cpuColor)
+        print(client.stockfish.get_board_visual())
 
+    # check for insuff material draw
+    if board.is_insufficient_material():
+            print(f'====== DRAW: Insufficient Material =======')
+            exit()
+    # check for threefold rep draw
+    if board.can_claim_threefold_repetition():
+        print(f'====== DRAW: threefold repetition =========')
+        exit()
+
+# code to decide move on distributed CPU's turn
+def distCpuTurn(client, board_state, board, cpuColor):
+    
     # generate k moves for computer, check that they are all valid
     move = ''
     moves = client.gen_moves()
     if len(moves) < 1:
-        print(f'==== CHECKMATE ==== \n === WHITE WINS! ===')
+        print(f'==== CHECKMATE ==== \n=== {"BLACK" if cpuColor == "white" else "WHITE"} WINS! ===')
         exit()
     evaluation = {}
     if len(client.workers) > 0:
         client.evals = []
-        for worker, move in zip(client.workers, moves):
+        iter_list = zip(list(client.workers), list(moves))  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+        for worker, move in iter_list:
             print(f'Sending {move}')
-            response = client.assign_move(color, board_state, move, worker)
+            response = client.assign_move(cpuColor, board_state, move, worker)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
@@ -207,20 +226,20 @@ def offlineMaster(client, mode, board):
                     # if the move assigned to failed worker was last one in list, add it to client.evals 
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
+                    break
         client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
             readable, writeable, exceptional = select.select(client.workers, client.workers, client.workers)
-            print(readable)
-            print(f'Have received {len(client.evals)} evaluations, have {len(client.workers)} workers')
             for s in readable: # here we know that we can only get messages from a worker
                 master_recv_worker(client, s)
 
             if time.time() > client.time_out:
                 print("a client timed out!")
                 # throw out the rest of the workers :( 
-                for worker, move in zip(client.workers, moves):
+                iter_list = zip(client.workers, moves) # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+                for worker, move in iter_list:
                     if not any(move in e for e in client.evals): # if move has not been evaluated yet, throw out associated worker
                         client.workers.remove(worker)
                         worker.close()
@@ -233,37 +252,28 @@ def offlineMaster(client, mode, board):
                             # if the move assigned to failed worker was last one in list, add it to client.evals 
                             # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                             client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
+                break
 
         # now we have responses from each worker --> time to choose best one 
-        if len(client.evals) > 1:
-            bestMove = client.eval_responses(client.evals, color)
+        if len(client.evals) >= 1:
+            bestMove = client.eval_responses(client.evals, cpuColor) 
+            move = bestMove[0]
+            evaluation = bestMove[1]
         else:
-            bestMove = client.evals[0]
-        move = bestMove[0]
-        evaluation = bestMove[1]
+            bestMove = moves[0]
     else:
         # just use first move 
-        move = moves[0]
-    if move == None:
+        bestMove = moves[0]
+    if bestMove == None:
         print(moves)
-    print(f'Computer (black) move is: {move}')
+    print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
     if evaluation != {}:
-        print(f'Evaluation for computer move: {evaluation}')
+        print(f'Evaluation for move: {evaluation}')
+    
     client.stockfish.make_moves_from_current_position([move['Move']])
 
     # make moves on Board object
     board.push(chess.Move.from_uci(move['Move']))
-
-    # check for insuff material draw
-    if board.is_insufficient_material():
-            print(f'====== DRAW: Insufficient Material =======')
-            exit()
-    # check for threefold rep draw
-    if board.can_claim_threefold_repetition():
-        print(f'====== DRAW: threefold repetition =========')
-        exit()
-
-    print(client.stockfish.get_board_visual())
 
 def master_recv_server(client, s):
     message = client.receive(s)
@@ -333,7 +343,8 @@ def worker_recv_master(client, s):
         type = message['type']
     except KeyError and TypeError:
         print(f'Master send bad formed JSON: {message}')
-        # TODO handle this
+        # master failed -- need to trigger an election
+
     if type == 'move':
         color = message['color']
         board_state = message['board_state']
@@ -345,9 +356,9 @@ def worker_recv_master(client, s):
         # evaluate the move and send the evaluation to the master
         eval_message = client.eval_move(board_state, move, DEPTH, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
         if not client.send(s, eval_message):
-            # master failed
-            # handle this error
+            # master failed -- need to trigger an election
             pass
+
 
 def master_recv_worker(client, s):
     message = client.receive(s)
@@ -357,6 +368,7 @@ def master_recv_worker(client, s):
         print(f'Worker sent bad JSON: {message}')
         client.workers.remove(s)
         s.close()
+        return False
     
     if type == 'evaluation':
         move = message['move']
@@ -374,7 +386,7 @@ def master_recv_worker(client, s):
             print(move)
             message = json.loads(message)
             #client.server_send(client.server, message.encode(ENCODING)) # TODO capture response to this '''
-
+    return True
 
 if __name__ == '__main__':
     main()
