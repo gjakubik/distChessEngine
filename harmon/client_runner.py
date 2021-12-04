@@ -234,6 +234,7 @@ def offlineMaster(client, mode, board):
                             # if the move assigned to failed worker was last one in list, add it to client.evals 
                             # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                             client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
+                break
 
         # now we have responses from each worker --> time to choose best one 
         if len(client.evals) > 1:
