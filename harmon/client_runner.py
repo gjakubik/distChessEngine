@@ -168,7 +168,7 @@ def offlineMaster(client, mode, board):
             print(f'====== DRAW: Insufficient Material =======')
             exit()
         if board.can_claim_threefold_repetition():
-            print(f'====== DRAW: threefold repetition')
+            print(f'====== DRAW: threefold repetition ======')
             exit()
 
         print(client.stockfish.get_board_visual())
