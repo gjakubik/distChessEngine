@@ -252,6 +252,7 @@ def distCpuTurn(client, board_state, board, cpuColor):
 
 def master_recv_server(client, s):
     message = client.receive(s)
+    print(f'Message from server: {message}')
     try:
         board_state = message['state']
         move_num = message['moveNum']
