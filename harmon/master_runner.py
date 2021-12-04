@@ -39,7 +39,7 @@ def main():
             print(f'Registered the engine. Engine ID: {client.engineId}')
         except KeyError:
             print(f'ERROR: Unexpected json formatting from server: {response}')
-    inputs = [client.listener] + [client.server] + client.workers
+    inputs = [client.listener] + [client.server] # the main while loop will only check for listener and server messages 
     outputs = []
 
     # inputs: 
@@ -93,10 +93,19 @@ def main():
                     inputs.append(sock)
                     client.workers.append(sock)
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
-                    master_recv_server(client, s)
-                elif s in client.workers: # received a move eval from a worker
-                    master_recv_worker(client, s)
-                        
+                    moveNum, color = master_recv_server(client, s)
+                    board.set_fen(client.stockfish.get_fen_position())
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
+                    # now we have the engine's move, we just need to send it back to the server
+                    message = {
+                        'state': client.stockfish.get_fen_position(),
+                        'moveNum': int(moveNum) + 1,
+                        'engineId': client.engineId
+                    }
+                    message = json.dumps(message)
+                    message = message.encode(ENCODING)
+                    client.server_send(client.server, message)
+
             for s in writeable: 
                 pass
 
@@ -163,7 +172,6 @@ def offlineMaster(client, mode, board, cpuColor):
 
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor):
-    
     # generate k moves for computer, check that they are all valid
     move = ''
     moves = client.gen_moves()
@@ -237,6 +245,9 @@ def distCpuTurn(client, board_state, board, cpuColor):
     # make moves on Board object
     board.push(chess.Move.from_uci(bestMove['Move']))
 
+    return bestMove
+
+
 def master_recv_server(client, s):
     message = client.receive(s)
     try:
@@ -246,46 +257,7 @@ def master_recv_server(client, s):
     except KeyError:
         print(f'Server sent bad JSON: {message}')
     client.stockfish.set_fen_position(board_state)
-    moves = client.gen_moves()
-    if client.workers:
-        client.evals = []
-        for worker, move in zip(client.workers, moves):
-            response = client.assign_move(color, board_state, move, worker)
-            if response == None:
-                # TODO handle socket that returns none to this
-                worker.close()
-                client.workers.remove(worker)
-                if len(client.workers) == 0:
-                    move = moves[0]
-                    # make move and respond to server
-                    client.stockfish.make_moves_from_current_position([move])
-                    message = {
-                        'endpont': '/move',
-                        'engineId': client.engineId,
-                        'state': client.stockfish.get_fen_position(),
-                        'moveNum': move_num
-                    }
-                    print(f'Message: \n {message}')
-                    response = client.send(client.game_server, message)
-                    if response == None:
-                        # TODO handle dead game server
-                        pass
-
-    else: # just pick the first move b/c we don't have any workers 
-        move = moves[0]
-        # make move and respond to server
-        client.stockfish.make_moves_from_current_position([move])
-        message = {
-            'endpont': '/move',
-            'engineId': client.engineId,
-            'state': client.stockfish.get_fen_position(),
-            'moveNum': move_num
-        }
-        print(f'Message: {message}')
-        response = client.server_send(client.game_server, message)
-        if response == None:
-            # TODO handle dead game server
-            pass
+    return move_num, color
 
 def master_recv_worker(client, s):
     message = client.receive(s)
