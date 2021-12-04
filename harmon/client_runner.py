@@ -158,6 +158,7 @@ def offlineMaster(client, mode, board, cpuColor):
     if cpuColor == 'white':
         distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor)
         color = 'black'
+        print(client.stockfish.get_board_visual())
 
     if mode == 'user':
         # prompt user for move
@@ -191,6 +192,7 @@ def offlineMaster(client, mode, board, cpuColor):
     
     if cpuColor == 'black':
         distCpuTurn(client, board, board_state, cpuColor)
+        print(client.stockfish.get_board_visual())
 
     # check for insuff material draw
     if board.is_insufficient_material():
@@ -200,8 +202,6 @@ def offlineMaster(client, mode, board, cpuColor):
     if board.can_claim_threefold_repetition():
         print(f'====== DRAW: threefold repetition =========')
         exit()
-    # print board state after these two turns
-    print(client.stockfish.get_board_visual())
 
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor):
