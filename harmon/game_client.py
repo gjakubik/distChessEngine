@@ -14,7 +14,8 @@ import math
 NAME_SERVER = 'catalog.cse.nd.edu'
 NS_PORT = 9097
 HEADER_SIZE = 64
-GAME_SERVER = 'https://gavinjakubik.me:5050'
+GAME_SERVER = 'gavinjakubik.me'
+GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
@@ -24,7 +25,7 @@ class GameClient:
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #self.server.connect(('gavinjakubik.me', 5050))
+        self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
 
         if self.role == 'master':
             self.evals = []
