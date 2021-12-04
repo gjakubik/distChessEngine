@@ -98,6 +98,8 @@ def main():
                     move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
+                        'endpoint': '/move',
+                        'method': 'POST',
                         'state': client.stockfish.get_fen_position(),
                         'moveNum': int(moveNum) + 1,
                         'engineId': client.engineId
