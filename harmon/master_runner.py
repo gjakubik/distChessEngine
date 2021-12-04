@@ -22,13 +22,11 @@ def main():
     stockfish_path = sys.argv[1]
     k = int(sys.argv[2])
     online = True if sys.argv[3] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
-    engineId = sys.argv[4]
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient('master', k, id, stockfish)
-    client.engineId = engineId 
     
     print(f'Host: {client.host}  Port: {client.port}')
     # get engine id from server
@@ -71,8 +69,9 @@ def main():
                 client.workers.append(sock)
     print(client.stockfish.get_board_visual())
     while True:
-        offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
-        continue
+        if not online:
+            offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
+        
 
         try:
             '''# TODO: in this block, have master client update the game server with current list of workers
