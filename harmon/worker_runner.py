@@ -22,7 +22,7 @@ def main():
     stockfish_path = sys.argv[1]
     id = int(sys.argv[3])
     k = int(sys.argv[4])
-    online = sys.argv[5] # user must pass in True or False to indicate if wanna play in offline mode or not
+    online = True if sys.argv[3] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
     engineId = sys.argv[6]
     master_host = sys.argv[7]
     master_port = int(sys.argv[8])
