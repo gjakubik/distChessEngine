@@ -14,7 +14,7 @@ const sendTCP =  (message, timeout) => {
          client.on('data', function(data) {
             // 
             console.log(data.toString());
-            resolve(data)
+            resolve(data.toString())
             client.end();
          });
          
