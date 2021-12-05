@@ -23,7 +23,7 @@ const handleConnection = (conn) => {
         try {
             if (newData.endpoint === "" ) {
                 console.log('::ffff:'+newData.host + ':' + newData.port);
-                const engineConn = conns['::ffff:'+newData.host];
+                const engineConn = conns['::ffff:'+newData.host + ':' + newData.port];
                 sendMessage(engineConn, JSON.stringify(newData))
             } else {
                 if (newData.endpoint === "/move") {
