@@ -127,6 +127,7 @@ def main():
                         if not worker_recv_master(client, s):
                             print("we handled an election")
                             if online:
+                                client.server.connect((GAME_SERVER, GAME_SERVER_PORT))
                                 # send a message to the game server to inform it of the change
                                 message = {
                                     'endpoint': f'/server/{client.engineId}',
