@@ -221,7 +221,7 @@ class GameClient:
     def update_ns(self):
         # update the name server with this client's info
         # role and id are stored in type so that we can super easily figure out winner of elections
-        message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.port, 'project': self.project}
+        message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.worker.getsockname()[1], 'project': self.project}
         message = json.dumps(message)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
