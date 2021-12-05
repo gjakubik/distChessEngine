@@ -131,7 +131,7 @@ def main():
                                 # send a message to the game server to inform it of the change
                                 message = {
                                     'endpoint': f'/server/{client.engineId}',
-                                    'method': 'POST',
+                                    'method': 'PUT',
                                     'role': 'master',
                                     'host': client.host,
                                     'port': client.server.getsockname()[1],
