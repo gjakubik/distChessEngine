@@ -29,7 +29,6 @@ class GameClient:
         self.project = project
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
-        self.last_update = self.update_ns()
 
         if self.role == 'master':
             self.evals = []
@@ -48,7 +47,9 @@ class GameClient:
         else: 
             # TODO: make socket stuff for workers
             self.conn_master()
-            
+
+        self.last_update = self.update_ns()            
+        
         # other fields:
         # self.workers -- list of sockets connecting to the workers
 
@@ -274,7 +275,7 @@ class GameClient:
     def conn_master(self):
         nsData = self.connect_ns()
         for el in nsData:
-            if el['project'] == self.project and bool(re.match('chessEngine-master')):
+            if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
                 host = el['address']
                 port = el['port']
                 self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
