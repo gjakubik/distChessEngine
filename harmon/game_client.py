@@ -274,6 +274,8 @@ class GameClient:
     def conn_master(self):
         nsData = self.connect_ns()
         for el in nsData:
+           # if 'project', 'type', 'lastheardfrom' not in el.keys():
+                #continue
             if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
                 host = el['address']
                 port = el['port']
