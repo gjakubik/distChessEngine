@@ -279,7 +279,7 @@ class GameClient:
         for el in nsData:
             if 'project' not in el.keys() or 'type' not in el.keys() or 'lastheardfrom' not in el.keys():
                 continue
-            if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
+            if el['project'] == self.project and bool(re.match('chessEngine-master', el['type'])) and el['lastheardfrom']:
                 host = el['address']
                 port = el['port']
                 self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
