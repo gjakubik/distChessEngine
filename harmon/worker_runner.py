@@ -53,7 +53,7 @@ def main():
                 print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
-        
+
     #outputs = [ worker.worker for worker in master_client.workers ]
     if role == 'master':
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -98,26 +98,25 @@ def main():
 
             for s in readable: 
                 if client.role == 'master':
-                    #if s is client.listener:
-                    print("weee wooo weee wooo new connection alert!")
-                    (sock, addr) = client.listener.accept()
-                    inputs.append(sock)
-                    client.workers.append(sock)
-                elif s is client.server: # received message from server -- it's engine's turn to make a move
-                    moveNum, color, apiPort = master_recv_server(client, s)
-                    board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
-                    print(client.stockfish.get_board_visual())
-                    # now we have the engine's move, we just need to send it back to the server
-                    message = {
-                        'endpoint': '/move',
-                        'method': 'POST',
-                        'apiPort': apiPort,
-                        'state': client.stockfish.get_fen_position(),
-                        'moveNum': int(moveNum) + 1,
-                        'engineId': client.engineId
-                    }
-                    client.server_send(client.server, message)
+                    if s is client.listener:
+                        print("weee wooo weee wooo new connection alert!")
+                        (sock, addr) = client.listener.accept()
+                        client.workers.append(sock)
+                    elif s is client.server: # received message from server -- it's engine's turn to make a move
+                        moveNum, color, apiPort = master_recv_server(client, s)
+                        board.set_fen(client.stockfish.get_fen_position())
+                        move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
+                        print(client.stockfish.get_board_visual())
+                        # now we have the engine's move, we just need to send it back to the server
+                        message = {
+                            'endpoint': '/move',
+                            'method': 'POST',
+                            'apiPort': apiPort,
+                            'state': client.stockfish.get_fen_position(),
+                            'moveNum': int(moveNum) + 1,
+                            'engineId': client.engineId
+                        }
+                        client.server_send(client.server, message)
 
                 elif client.role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
