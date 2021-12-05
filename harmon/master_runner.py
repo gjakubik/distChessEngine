@@ -105,8 +105,6 @@ def main():
                         'moveNum': int(moveNum) + 1,
                         'engineId': client.engineId
                     }
-                    message = json.dumps(message)
-                    message = message.encode(ENCODING)
                     client.server_send(client.server, message)
 
             for s in writeable: 
