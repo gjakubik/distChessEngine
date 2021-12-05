@@ -160,7 +160,7 @@ class GameClient:
 
     def server_send(self, client, message):
         # send message representing message length
-        message = json.loads(message)
+        message = json.dumps(message)
         message = message.encode(ENCODING)
         client.sendall(message)
 
