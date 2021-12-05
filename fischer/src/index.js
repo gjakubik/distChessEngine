@@ -12,7 +12,7 @@ const handleConnection = (conn) => {
     var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;  
     console.log('new client connection from %s', remoteAddress);
     conn.setEncoding('utf8');
-    conns[conn.remoteAddress] = conn;
+    conns[remoteAddress] = conn;
     // New connection, register new enginge
     const onConnData = (d) => {
         const newData = JSON.parse(d);
@@ -22,7 +22,7 @@ const handleConnection = (conn) => {
         // If endpoint is empty then this is a new move from the user
         try {
             if (newData.endpoint === "" ) {
-                console.log('::ffff:'+newData.host);
+                console.log('::ffff:'+newData.host + ':' + newData.port);
                 const engineConn = conns['::ffff:'+newData.host];
                 sendMessage(engineConn, JSON.stringify(newData))
             } else {
