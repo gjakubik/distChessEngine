@@ -43,7 +43,7 @@ def main():
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
         if online:
-            message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.port, 'numWorkers': k}
+            message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.server.getsockname()[1],  'numWorkers': k}
             response = client.server_send(client.server, message)
             try:
                 client.engineId = response['serverId']
