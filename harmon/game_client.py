@@ -246,7 +246,7 @@ class GameClient:
                     workerAddrs.append((el['address'], el['port']))
         print(f'Worker IDs: {workerIds}')
         print(f'Worker Addrs: {workerAddrs}')
-        if self.id == min(workerIds):
+        if self.id == int(min(workerIds)):
             print('I am the master now')
             # make ourselves the master
             self.make_master(workerAddrs)
