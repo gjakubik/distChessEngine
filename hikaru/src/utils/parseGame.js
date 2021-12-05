@@ -47,7 +47,7 @@ const get = async (gameId) => {
             "username": object.get('username'),
             "winner": object.get('winner'),
             "engine1": object.get('engine1').id,
-            "engine2": object.get('engine2').id
+            "engine2": ""
         }
 
         return gameObj;
