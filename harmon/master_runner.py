@@ -94,13 +94,14 @@ def main():
                     inputs.append(sock)
                     client.workers.append(sock)
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
-                    moveNum, color = master_recv_server(client, s)
+                    moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
                     move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
                         'endpoint': '/move',
                         'method': 'POST',
+                        'apiPort': apiPort,
                         'state': client.stockfish.get_fen_position(),
                         'moveNum': int(moveNum) + 1,
                         'engineId': client.engineId
@@ -257,10 +258,11 @@ def master_recv_server(client, s):
         board_state = message['state']
         move_num = message['moveNum']
         color = message['color']
+        apiPort = message['apiPort']
     except KeyError:
         print(f'Server sent bad JSON: {message}')
     client.stockfish.set_fen_position(board_state)
-    return move_num, color
+    return move_num, color, apiPort
 
 def master_recv_worker(client, s):
     message = client.receive(s)
