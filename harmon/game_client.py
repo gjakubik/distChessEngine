@@ -159,7 +159,6 @@ class GameClient:
         return response # either will be None or OK
 
     def server_send(self, client, message):
-        # send message representing message length
         message = json.dumps(message)
         message = message.encode(ENCODING)
         client.sendall(message)
