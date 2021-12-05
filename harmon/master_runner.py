@@ -101,7 +101,7 @@ def main():
                     message = {
                         'endpoint': '/move',
                         'method': 'POST',
-                        'apiPort': apiPort,
+                        #'apiPort': apiPort,
                         'state': client.stockfish.get_fen_position(),
                         'moveNum': int(moveNum) + 1,
                         'engineId': client.engineId
@@ -258,11 +258,11 @@ def master_recv_server(client, s):
         board_state = message['state']
         move_num = message['moveNum']
         color = message['color']
-        apiPort = message['apiPort']
+        #apiPort = message['apiPort']
     except KeyError:
         print(f'Server sent bad JSON: {message}')
     client.stockfish.set_fen_position(board_state)
-    return move_num, color, apiPort
+    return move_num, color #, apiPort
 
 def master_recv_worker(client, s):
     message = client.receive(s)
