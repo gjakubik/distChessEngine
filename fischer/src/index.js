@@ -28,8 +28,9 @@ const handleConnection = (conn) => {
             } else {
                 if (newData.endpoint === "/move") {
                     // if the endpoint is move it is move response from engine, update API
-                    const APIConn = conns['::ffff:127.0.0.1']
-                    sendMessage(APIConn, JSON.stringify(newData)); 
+                    console.log(conns);
+                    const APIConn = conns['::ffff:127.0.0.1:'+newData.apiPort]
+                    APIConn.write(JSON.stringify(newData)); 
                 } else {
                     // If the endpoint is otherwise, it is master or worker registering
                     APIReq(newData['endpoint'], newData['method'], newData)
