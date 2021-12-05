@@ -54,10 +54,7 @@ def main():
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
 
-    elif role == "worker":
-        # master address from server
-        inputs = [client.server] + [client.worker] 
-        outputs = []
+    
         
     # inputs: 
     #   worker sockets -- messages from worker to master
@@ -89,7 +86,7 @@ def main():
                     client.workers.append(sock)
         print(client.stockfish.get_board_visual())
     while True:
-        if role == 'master' and not online:
+        if client.role == 'master' and not online:
             offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
             continue
 
@@ -97,31 +94,50 @@ def main():
             # periodically update the name server
             if time.time() - client.last_update > 60:
                 client.last_update = client.update_ns()
+        
+            if client.role == "master":
+                inputs = [client.listener] + [client.server] + client.workers 
+                outputs = []
+            elif client.role == "worker":
+                # master address from server
+                inputs = [client.server] + [client.worker] 
+                outputs = []
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
             for s in readable: 
-                if role == 'master':
-                    # readable sockets could be: server sending game state or worker sending a move evaluation or listener accepting a new connection
-                    if s is client.listener:
-                        print("weee wooo weee wooo new connection alert!")
-                        (sock, addr) = client.listener.accept()
-                        inputs.append(sock)
-                        client.workers.append(sock)
-                    elif s is client.server: # received message from server -- it's engine's turn to make a move
-                        master_recv_server(client, s)
-                    elif s in client.workers: # received a move eval from a worker
-                        master_recv_worker(client, s)
+                if client.role == 'master':
+                    #if s is client.listener:
+                    print("weee wooo weee wooo new connection alert!")
+                    (sock, addr) = client.listener.accept()
+                    inputs.append(sock)
+                    client.workers.append(sock)
+                elif s is client.server: # received message from server -- it's engine's turn to make a move
+                    moveNum, color, apiPort = master_recv_server(client, s)
+                    board.set_fen(client.stockfish.get_fen_position())
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
+                    print(client.stockfish.get_board_visual())
+                    # now we have the engine's move, we just need to send it back to the server
+                    message = {
+                        'endpoint': '/move',
+                        'method': 'POST',
+                        'apiPort': apiPort,
+                        'state': client.stockfish.get_fen_position(),
+                        'moveNum': int(moveNum) + 1,
+                        'engineId': client.engineId
+                    }
+                    client.server_send(client.server, message)
 
-                elif role == 'worker':
+                elif client.role == 'worker':
                     # readable sockets could be: server sending an election message or master sending a move to evaluate or a new connection if a new master has been elected (???)
-                    #if s is client.listener: # idk if this is how i wanna implement htis
-                        #pass
                     if s is client.server: # some sort of election message
                         continue
                         
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
-                        worker_recv_master(client, s)
+                        if not worker_recv_master(client, s):
+                            print("we handled an election")
+                            # we have triggered and handled an election 
+                            continue # continue to the next iteration so we can get a message from server/new master
                         
             for s in writeable: 
                 pass
@@ -189,7 +205,6 @@ def offlineMaster(client, mode, board, cpuColor):
 
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor):
-    
     # generate k moves for computer, check that they are all valid
     move = ''
     moves = client.gen_moves()
@@ -322,7 +337,7 @@ def worker_recv_server(client, s):
     if type == 'election':
         response = client.election_vote()
     elif type == 'election_result':
-        #TODO make this client the master
+        #TODO make this client the masterf
         pass
 
 def worker_recv_master(client, s):
@@ -332,6 +347,7 @@ def worker_recv_master(client, s):
     except KeyError and TypeError:
         print(f'Master send bad formed JSON: {message}')
         # master failed -- need to trigger an election
+        client.handle_election()
         return False
 
     if type == 'move':
@@ -346,7 +362,9 @@ def worker_recv_master(client, s):
         eval_message = client.eval_move(board_state, move, DEPTH, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
         if not client.send(s, eval_message):
             # master failed -- need to trigger an election
-            pass
+            client.handle_election()
+            return False
+    return True
 
 def master_recv_worker(client, s):
     message = client.receive(s)
@@ -365,15 +383,6 @@ def master_recv_worker(client, s):
         # send ack to worker
         ack_message = json.dumps({'type': 'ack', 'owner': 'master', 'status': 'OK'})
         s.sendall(ack_message.encode(ENCODING))
-
-        '''if len(client.evals == client.k):
-            # we have all of our move evaluations and need to respond to the server
-            move = client.eval_responses(client.evals, color)
-            client.stockfish.make_moves_from_current_position([move])
-            message = {'endpoint': '/move', 'state': client.stockfish.get_fen_position(), 'gameId': client.game_id, 'moveNum': move_num}
-            print(move)
-            message = json.loads(message)
-            #client.server_send(client.server, message.encode(ENCODING)) # TODO capture response to this '''
     return True
 
 if __name__ == '__main__':
