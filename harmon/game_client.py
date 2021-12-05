@@ -253,7 +253,7 @@ class GameClient:
             # listen for workers
             print('Listening for new worker connecitons')
             while len(self.workers) < self.k:
-                readable, writeable, exceptional = select.select(self.listener, [], self.listener)
+                readable, writeable, exceptional = select.select([self.listener], [], [self.listener])
                 for s in readable:
                     if s is self.listener:
                         print("weee wooo weee wooo new connection alert!")
