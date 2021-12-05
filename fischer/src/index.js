@@ -33,7 +33,7 @@ const handleConnection = (conn) => {
                     console.log(Object.keys(conns));
                     const APIConn = conns['::ffff:127.0.0.1:'+newData.apiPort]
                     APIConn.write(JSON.stringify(newData));
-                    sendMessage(conn, "OK"); 
+                    sendMessage(conn, {"data": "OK"}); 
                 } else {
                     // If the endpoint is otherwise, it is master or worker registering
                     APIReq(newData['endpoint'], newData['method'], newData)
