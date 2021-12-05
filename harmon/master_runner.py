@@ -20,13 +20,15 @@ ENCODING = 'utf8'
 def main():
     # parse argv
     stockfish_path = sys.argv[1]
-    k = int(sys.argv[2])
-    online = True if sys.argv[3] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    owner = sys.argv[2]
+    project = sys.argv[3]
+    k = int(sys.argv[4])
+    online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
-    client = game_client.GameClient('master', k, id, stockfish)
+    client = game_client.GameClient('master', k, 0, stockfish)
     
     print(f'Host: {client.host}  Port: {client.port}')
     # get engine id from server
@@ -49,15 +51,16 @@ def main():
 
     print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
-    last_update = time.time()
+    
+    board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    board = chess.Board(board_state) # this is the python-chess board
+
     if not online:
         mode = input(f'Would you like to play against the computer or play two engines against each other? (Enter user or cpu): ')
         cpuColor = input(f'Which color do you want the distributed AI to play with?: ')
         while cpuColor not in ["white", "black"]:
             cpuColor = input(f'Invalid input. What color do you want the distributed AI to play? (white or black): ')
         
-        board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-        board = chess.Board(board_state) # this is the python-chess board
         client.stockfish.set_fen_position(board_state)
         board_state = client.stockfish.get_fen_position()
         print(board_state)
@@ -77,11 +80,9 @@ def main():
             offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
 
         try:
-            '''# TODO: in this block, have master client update the game server with current list of workers
-            if time.time() - last_update > 60:
-                response = client.worker_update()
-                # TODO: error check 
-                last_update = time.time()'''
+            # periodically update the name server
+            if time.time() - client.last_update > 60:
+                client.last_update = client.update_ns()
 
             readable, writeable, exceptional = select.select(inputs, outputs, inputs)
 
