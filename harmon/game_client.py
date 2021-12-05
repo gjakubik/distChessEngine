@@ -45,6 +45,7 @@ class GameClient:
             
         else: 
             # TODO: make socket stuff for workers
+            self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.conn_master()
 
         self.last_update = self.update_ns()            

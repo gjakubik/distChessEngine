@@ -286,15 +286,6 @@ def master_recv_worker(client, s):
         # send ack to worker
         ack_message = json.dumps({'type': 'ack', 'owner': 'master', 'status': 'OK'})
         s.sendall(ack_message.encode(ENCODING))
-
-        '''if len(client.evals == client.k):
-            # we have all of our move evaluations and need to respond to the server
-            move = client.eval_responses(client.evals, color)
-            client.stockfish.make_moves_from_current_position([move])
-            message = {'endpoint': '/move', 'state': client.stockfish.get_fen_position(), 'gameId': client.game_id, 'moveNum': move_num}
-            print(move)
-            message = json.loads(message)
-            #client.server_send(client.server, message.encode(ENCODING)) # TODO capture response to this '''
     return True
 
 if __name__ == '__main__':

@@ -332,6 +332,7 @@ def worker_recv_master(client, s):
     except KeyError and TypeError:
         print(f'Master send bad formed JSON: {message}')
         # master failed -- need to trigger an election
+        return False
 
     if type == 'move':
         color = message['color']
