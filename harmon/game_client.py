@@ -8,6 +8,7 @@ import socket
 import json
 from stockfish import Stockfish
 import math
+import re
 
 
 # globals
@@ -19,11 +20,13 @@ GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, role, k, id, stockfish):
+    def __init__(self, role, k, id, stockfish, owner, project):
         self.role = role
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
+        self.owner = owner
+        self.project = project
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
 
@@ -43,8 +46,10 @@ class GameClient:
             
         else: 
             # TODO: make socket stuff for workers
-            self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # worker socket 
-            
+            self.conn_master()
+
+        self.last_update = self.update_ns()            
+        
         # other fields:
         # self.workers -- list of sockets connecting to the workers
 
@@ -59,22 +64,14 @@ class GameClient:
         }
         return self.server_send(message)
 
-    def election_vote(self):
-        # worker client votes in election to decide new master client
-        # elections are bully algorithms where lowest id worker becomes new master
-        message = {
-            "type": "vote", 
-            "id": self.id,
-        }
-        # TODO: handle timeouts
-        response = self.server_send(self.server, message)
-        return response
-
     def make_master(self, workers):
-        # gets list of workers passed in from servere
-        # make this worker client the new master 
         self.role = 'master'
-        self.workers = workers
+
+        self.worker.close()
+
+        # initialize lists
+        self.evals = []
+        self.workers = [] # we dont have to append to this here b/c that gets done automatically when the workers try to connect to us 
 
         # tcp listener to communicate with worker clients
         listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -87,17 +84,10 @@ class GameClient:
         print(f'Listening on port: {self.port}')
         self.listener = listener # socket that will communicate with the workers
         
-        # connect workers to new master
-        for worker in self.workers:
-            worker.worker.close()
-            worker.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            worker.worker.connect((self.host, self.port))
-        
-        # TODO: send message to all workers saying i am new master
-    
-    def handle_worker_fail():
-        # have this master client handle the failure of one of the workers
-        pass
+        # update the nameserver to let it know this is the new master
+        self.last_update = self.update_ns()
+
+        # TODO send a message to the game server to inform it of the change
 
     def eval_responses(self, evals, color):
         # evals is a list of (move, evaluation) tuples -- returns a tuple of (move, evaluation)
@@ -154,11 +144,6 @@ class GameClient:
         moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
-    def get_worker_responses(self):
-        # TODO: select between the workers to read back their responses 
-        # return list of tuples with move and rating 
-        pass
-
     def assign_move(self, color, board_state, move, worker):
         # move: representation of starting move assigned to this worker
         # worker: the socket the master has assigned to this worker
@@ -174,7 +159,6 @@ class GameClient:
         return response # either will be None or OK
 
     def server_send(self, client, message):
-        # send message representing message length
         message = json.dumps(message)
         message = message.encode(ENCODING)
         client.sendall(message)
@@ -234,11 +218,65 @@ class GameClient:
         return client
 
     def update_ns(self):
-        message = {'type': f'chessEngine-{self.role}', 'owner': self.owner, 'port': self.port, 'project': self.project}
+        # update the name server with this client's info
+        # role and id are stored in type so that we can super easily figure out winner of elections
+        message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.port, 'project': self.project}
         message = json.dumps(message)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
         s.close()
         return time.time()
 
+    def connect_ns(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((NAME_SERVER, 9097))
+        # download service info JSON
+        req = 'GET /query.json HTTP/1.1\r\nHost:catalog.cse.nd.edu:9097\r\nAccept: application/json\r\n\r\n'
+        s.sendall(req.encode(ENCODING))
+        # get info back from name server
+        chunks = []
+        while True:
+            chunk = s.recv(1024)
+            if not chunk or chunk == b'': # ns failed to send info
+                break
+            chunks.append(chunk)
+        s.close()
+        data = b''.join(chunks)
+        data = data.decode()
+        data = data.split('\n', 7)[-1] # first 7 lines are http header stuff -- not recognizeable by json
+        json_data = json.loads(data)
+        return json_data # returns the name server's info as a json
     
+    def handle_election(self):
+        # get name server data
+        # parse name server for all chessEngine entries assoc. with this project, pull the ids from all entries with worker types
+        # compare pulled id to own id, if own is smaller than the rest, we are master
+        nsData = self.connect_ns()
+        workerIds = []
+        workerAddrs = []
+        for el in nsData:
+            if el['project'] == self.project:
+                # see if it's a worker using regex 
+                isWorker = bool(re.match('chessEngine-worker-([0-9]+)', el['type'])) 
+                if isWorker and el['lastheardfrom']:
+                    # add the worker's id to the id list
+                    id = el['type'].split('-', 2)[2] # if we split the type by -, the third element is the worker's id
+                    workerIds.append(id)
+                    # add the worker's address to the worker addrs list in case this guy becomes the master
+                    workerAddrs.append((el['address'], el['port']))
+        if self.id == min(workerIds):
+            # make ourselves the master
+            self.make_master(workerAddrs)
+        else:
+            # TODO: connect ot the new master
+            pass
+
+    def conn_master(self):
+        nsData = self.connect_ns()
+        for el in nsData:
+            if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
+                host = el['address']
+                port = el['port']
+                self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.worker.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                self.worker.connect((host, port))
