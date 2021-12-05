@@ -163,6 +163,10 @@ class GameClient:
         message = message.encode(ENCODING)
         client.sendall(message)
 
+        # get the actual response
+        response = self.receive(client)
+        return response
+
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
