@@ -75,7 +75,6 @@ def main():
             if s is client.listener:
                 print("weee wooo weee wooo new connection alert!")
                 (sock, addr) = client.listener.accept()
-                inputs.append(sock)
                 client.workers.append(sock)
     print(client.stockfish.get_board_visual())
 

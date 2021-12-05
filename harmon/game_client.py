@@ -28,21 +28,21 @@ class GameClient:
         self.owner = owner
         self.project = project
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        # tcp listener to communicate with worker clients
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        listener.bind((socket.gethostname(), 0))
+        hostname = socket.gethostname()
+        self.host = socket.gethostbyname(hostname)
+        self.port = listener.getsockname()[1]
+        self.listener = listener
 
         if self.role == 'master':
             self.evals = []
             self.workers = [] # list of sockets
-            # tcp listener to communicate with worker clients
-            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            listener.bind((socket.gethostname(), 0))
-            hostname = socket.gethostname()
-            self.host = socket.gethostbyname(hostname)
-            self.port = listener.getsockname()[1]
-            listener.listen(5)
+            self.listener.listen(5)
             print(f'Listening on port: {self.port}')
-            self.listener = listener # socket that will communicate with the workers
-            
         else: 
             # TODO: make socket stuff for workers
             self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,41 +53,18 @@ class GameClient:
         # other fields:
         # self.workers -- list of sockets connecting to the workers
 
-    def workers_update(self):
-        message = {
-            'endpoint': f'/server/{self.engineId}',
-            'host': self.host,
-            'port': self.port,
-            'role': self.role,
-            'numWorkers': len(self.workers),
-            'workers': self.workers
-        }
-        return self.server_send(message)
-
     def make_master(self, workers):
         self.role = 'master'
-
+        self.k -= 1 # have to decrement this b/c we're losing a worker to gain a master
         self.worker.close()
-
         # initialize lists
         self.evals = []
         self.workers = [] # we dont have to append to this here b/c that gets done automatically when the workers try to connect to us 
-
         # tcp listener to communicate with worker clients
-        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        listener.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        listener.bind((socket.gethostname(), 0))
-        hostname = socket.gethostname()
-        self.host = socket.gethostbyname(hostname)
-        self.port = listener.getsockname()[1]
-        listener.listen(5)
+        self.listener.listen(5)
         print(f'Listening on port: {self.port}')
-        self.listener = listener # socket that will communicate with the workers
-        
         # update the nameserver to let it know this is the new master
         self.last_update = self.update_ns()
-
-        # TODO send a message to the game server to inform it of the change
 
     def eval_responses(self, evals, color):
         # evals is a list of (move, evaluation) tuples -- returns a tuple of (move, evaluation)
@@ -221,10 +198,7 @@ class GameClient:
     def update_ns(self):
         # update the name server with this client's info
         # role and id are stored in type so that we can super easily figure out winner of elections
-        if self.role == 'worker':
-            message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.worker.getsockname()[1], 'project': self.project}
-        else:
-            message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.port, 'project': self.project}
+        message = {'type': f'chessEngine-{self.role}-{self.id}', 'owner': self.owner, 'port': self.port, 'project': self.project}
         message = json.dumps(message)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.sendto(message.encode(ENCODING), (NAME_SERVER, NS_PORT))
@@ -270,12 +244,30 @@ class GameClient:
                     workerIds.append(id)
                     # add the worker's address to the worker addrs list in case this guy becomes the master
                     workerAddrs.append((el['address'], el['port']))
-        if self.id == min(workerIds):
+        print(f'Worker IDs: {workerIds}')
+        print(f'Worker Addrs: {workerAddrs}')
+        if self.id == int(min(workerIds)):
+            print('I am the master now')
             # make ourselves the master
             self.make_master(workerAddrs)
+            # listen for workers
+            print('Listening for new worker connecitons')
+            while len(self.workers) < self.k:
+                readable, writeable, exceptional = select.select([self.listener], [], [self.listener])
+                for s in readable:
+                    if s is self.listener:
+                        print("weee wooo weee wooo new connection alert!")
+                        (sock, addr) = self.listener.accept()
+                        self.workers.append(sock)
         else:
-            # TODO: connect ot the new master
-            pass
+            # connect to the new master
+            masterId = min(workerIds)
+            masterAddr = workerAddrs[workerIds.index(masterId)]
+            print(f'Worker {masterId} is the new master. Connecting to: {masterAddr}')
+
+            self.worker.close()
+            self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.worker.connect(masterAddr)
 
     def conn_master(self):
         nsData = self.connect_ns()
