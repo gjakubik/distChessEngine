@@ -65,16 +65,6 @@ class GameClient:
         print(f'Listening on port: {self.port}')
         # update the nameserver to let it know this is the new master
         self.last_update = self.update_ns()
-        # send a message to the game server to inform it of the change
-        message = {
-            'endpoint': f'/server/{self.engineId}',
-            'method': 'POST',
-            'role': 'master',
-            'host': self.host,
-            'port': self.server.getsockname()[1],
-            'numWorkers': self.k,
-        }
-        response = self.server_send(self.server, message)
 
     def eval_responses(self, evals, color):
         # evals is a list of (move, evaluation) tuples -- returns a tuple of (move, evaluation)

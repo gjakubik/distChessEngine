@@ -136,7 +136,17 @@ def main():
                     elif s is client.worker: # message from master, it's a move to evaluate (.worker is the socket which handles comm between worker and master)
                         if not worker_recv_master(client, s):
                             print("we handled an election")
-                            # we have triggered and handled an election 
+                            if online:
+                                # send a message to the game server to inform it of the change
+                                message = {
+                                    'endpoint': f'/server/{client.engineId}',
+                                    'method': 'POST',
+                                    'role': 'master',
+                                    'host': client.host,
+                                    'port': client.server.getsockname()[1],
+                                    'numWorkers': client.k,
+                                }
+                                response = client.server_send(client.server, message)
                             continue # continue to the next iteration so we can get a message from server/new master
                         
             for s in writeable: 
