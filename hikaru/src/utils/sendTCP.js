@@ -5,7 +5,7 @@ const sendTCP =  (message, timeout) => {
     return new Promise((resolve, reject) => {
         
         const socket = new net.Socket();
-
+        console.log(socket);
         const id = setTimeout(() => {
             clearTimeout(id);
             socket.destroy();
