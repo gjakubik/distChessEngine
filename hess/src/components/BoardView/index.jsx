@@ -67,14 +67,15 @@ export default function BoardView({ boardWidth }) {
         .then((resp) => {
             console.log(resp);
             try {
+                console.log(game.moves());
                 safeGameMutate((game) => {
-                    game.move(resp.state);
+                    game.load(resp.data.state);
                 });
             } catch (err) {
                 console.log("Calling the engine failed: %s\nPlaying random move", err);
                 makeRandomMove();
             }
-            setMoveNum(JSON.parse(resp).state);
+            setMoveNum(resp.moveNum);
             setIsLoading(false);
             return true;
         }).catch((err) => {
