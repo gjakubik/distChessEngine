@@ -96,8 +96,9 @@ app.post('/move', async (req, res) => {
     try {
         console.log("moving");
         // TODO: Put user move in parse
-        //const playerMove = await move.create(req.body.gameId, req.body.state, req.body.moveNum);
-        //const gameObj = await game.get(req.body.gameId);
+        const playerMove = await move.create(req.body.gameId, req.body.state, req.body.moveNum);
+        const gameObj = await game.get(req.body.gameId);
+        console.log()
         const serverObj = await server.get(gameObj.engine1);
         const message = {
             ...req.body,
@@ -114,7 +115,7 @@ app.post('/move', async (req, res) => {
         // TODO: Send engine move as response to user
         res.status(200).send(engineResp);
     } catch (err) {
-        res.status(400).send("Error sending move to server: ", err);
+        res.status(100).send("Error sending move to server: ", err);
     }
     
 

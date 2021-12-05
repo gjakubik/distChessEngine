@@ -10,11 +10,12 @@ import Button     from '@mui/material/Button';
 import TextField  from '@mui/material/TextField';
 import Backdrop   from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function BoardView({ boardWidth }) {
     const chessboardRef                           = useRef();
     const [game, setGame]                         = useState(new Chess());
-    console.log(game.fen());
     const [arrows, setArrows]                     = useState([]);
     const [boardOrientation, setBoardOrientation] = useState('white');
     const [engineId, setEngineId]                 = useState("");
@@ -23,6 +24,8 @@ export default function BoardView({ boardWidth }) {
     const [gameId, setGameId]                     = useState("");
     const [moveNum, setMoveNum]                   = useState(0);
     const [isLoading, setIsLoading]               = useState(false);
+    const [isErr, setIsErr]                       = useState(true);
+    const [ErrMessage, setErrMessage]             = useState("Please enter an Engine ID");
 
     function safeGameMutate(modify) {
         setGame((g) => {
@@ -48,18 +51,6 @@ export default function BoardView({ boardWidth }) {
       }
     
     function onDrop(sourceSquare, targetSquare) {
-        /*
-        var newGameId = '';
-        if (moveNum == 0) {
-            startGame(username, engineId)
-                .then((newId) => {
-                    console.log(newId);
-                    setGameId(newId);
-                }).catch((err) => {
-                    console.log(err);
-                });
-        }
-        */
 
         const gameCopy = { ...game };
         const move = gameCopy.move({
@@ -72,26 +63,30 @@ export default function BoardView({ boardWidth }) {
         if (move === null) return false;
 
         setIsLoading(true);
-        makeMove("", game.fen(), moveNum)
-            .then((resp) => {
-                console.log(resp);
-                try {
-                    safeGameMutate((game) => {
-                        game.move(JSON.parse(resp).state);
-                    });
-                } catch (err) {
-                    console.log("Calling the engine failed: %s\nPlaying random move", err);
-                    makeRandomMove();
-                }
-                setMoveNum(JSON.parse(resp).state);
-                setIsLoading(false);
-                return true;
-            });
+        makeMove(gameId, game.fen(), moveNum)
+        .then((resp) => {
+            console.log(resp);
+            try {
+                safeGameMutate((game) => {
+                    game.move(resp.state);
+                });
+            } catch (err) {
+                console.log("Calling the engine failed: %s\nPlaying random move", err);
+                makeRandomMove();
+            }
+            setMoveNum(JSON.parse(resp).state);
+            setIsLoading(false);
+            return true;
+        }).catch((err) => {
+            console.log(err);
+            setIsErr(true);
+            setErrMessage("Failed to make engine move");
+
+        });
     }
 
-
-
     const resetHandler = () => {
+        setIsErr(false);
         safeGameMutate((game) => {
             game.reset();
             setMoveNum(0);
@@ -100,6 +95,7 @@ export default function BoardView({ boardWidth }) {
     };
 
     const undoHandler = () => {
+        setIsErr(false);
         safeGameMutate((game) => {
             game.undo();
         });
@@ -107,12 +103,31 @@ export default function BoardView({ boardWidth }) {
     };
 
     const newGameHandler = () => {
+        setIsErr(false);
+        if (engineId === '') {
+            setIsErr(true);
+            setErrMessage("Please enter an Engine ID");
+        }
+        // get new game ID
+        setIsLoading(true);
+        startGame(username, engineId)
+        .then((newGameId) => {
+            console.log(newGameId);
+            setGameId(newGameId);
+        })
+        .catch((err) => {
+            console.log(err);
+            setIsErr(true);
+            setErrMessage("Failed to create new game. Make sure that the engine ID is correct and try again");
+        });
+
         safeGameMutate((game) => {
             game.reset();
         });
         setMoveNum(0);
         chessboardRef.current.clearPremoves();
         setGameEnd(false);
+        setIsLoading(false);
     };
 
     return (
@@ -137,6 +152,7 @@ export default function BoardView({ boardWidth }) {
                             setEngineId(event.target.value);
                         }} 
                     />
+                    <Button variant="contained" onClick={newGameHandler}>Start</Button>
                 </Stack>
                 <Chessboard
                     id="PlayVsPlay"
@@ -152,6 +168,11 @@ export default function BoardView({ boardWidth }) {
                     }}
                     ref={chessboardRef}
                 />
+                {isErr ? 
+                (<Alert severity="error">{ErrMessage}</Alert>)
+                :
+                (<React.Fragment></React.Fragment>)
+                }
                 {gameEnd ? 
                 (
                     <Stack direction="row" spacing={2}>
@@ -187,6 +208,12 @@ export default function BoardView({ boardWidth }) {
                         {/* Add button to display stats for game */}
                     </Stack>
                 </Stack>
+            </Backdrop>
+            <Backdrop
+                sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, display: 'flex'}}
+                open={isLoading}
+            >
+                <CircularProgress />
             </Backdrop>
         </React.Fragment>
     );
