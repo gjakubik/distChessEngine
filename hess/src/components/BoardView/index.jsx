@@ -50,6 +50,15 @@ export default function BoardView({ boardWidth }) {
         });
       }
     
+    const checkGame = (gameCheck) => {
+        const possibleMoves = gameCheck.moves();
+        console.log(possibleMoves);
+        // exit if the game is over
+        if (gameCheck.game_over() || gameCheck.in_draw() || possibleMoves.length === 0) {
+            setGameEnd(true);
+        }
+    }
+
     function onDrop(sourceSquare, targetSquare) {
 
         const gameCopy = { ...game };
@@ -59,11 +68,19 @@ export default function BoardView({ boardWidth }) {
             promotion: 'q' // always promote to a queen for example simplicity
         });
         setGame(gameCopy);
-        setMoveNum(moveNum + 1);
         if (move === null) return false;
 
+        //checkGame(gameCopy);
+        const possibleMoves = gameCopy.moves();
+        console.log(possibleMoves);
+        // exit if the game is over
+        if (gameCopy.game_over() || gameCopy.in_draw() || possibleMoves.length === 0) {
+            setGameEnd(true);
+        }
+
         setIsLoading(true);
-        makeMove(gameId, game.fen(), moveNum)
+        console.log(moveNum);
+        makeMove(gameId, game.fen(), moveNum + 1)
         .then((resp) => {
             console.log(resp);
             try {
@@ -71,11 +88,20 @@ export default function BoardView({ boardWidth }) {
                 safeGameMutate((game) => {
                     game.load(resp.data.state);
                 });
+                const newPossibleMoves = game.moves();
+                console.log(newPossibleMoves);
+                // exit if the game is over
+                if (game.game_over() || game.in_draw() || newPossibleMoves.length === 0) {
+                    setGameEnd(true);
+                }
+                //checkGame(game);
+                console.log(parseInt(resp.data.moveNum))
+                setMoveNum(parseInt(resp.data.moveNum));
             } catch (err) {
                 console.log("Calling the engine failed: %s\nPlaying random move", err);
                 makeRandomMove();
+                setMoveNum(moveNum + 2);
             }
-            setMoveNum(resp.moveNum);
             setIsLoading(false);
             return true;
         }).catch((err) => {
@@ -84,6 +110,8 @@ export default function BoardView({ boardWidth }) {
             setErrMessage("Failed to make engine move");
 
         });
+
+        
     }
 
     const resetHandler = () => {
