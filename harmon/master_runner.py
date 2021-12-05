@@ -28,7 +28,7 @@ def main():
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
-    client = game_client.GameClient('master', k, 0, stockfish)
+    client = game_client.GameClient('master', k, 0, stockfish,  owner, project)
     
     print(f'Host: {client.host}  Port: {client.port}')
     # get engine id from server

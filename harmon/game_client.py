@@ -20,12 +20,13 @@ GAME_SERVER_PORT = 5051
 ENCODING = 'utf8'
 
 class GameClient:
-    def __init__(self, role, k, id, stockfish):
+    def __init__(self, role, k, id, stockfish, owner, project):
         self.role = role
         self.k = k
         self.id = id # this should increase from 0 - K
         self.stockfish = stockfish
-        self.project = 'distChessEngine'
+        self.owner = owner
+        self.project = project
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
         self.last_update = self.update_ns()
@@ -46,7 +47,7 @@ class GameClient:
             
         else: 
             # TODO: make socket stuff for workers
-            self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # worker socket 
+            self.conn_master()
             
         # other fields:
         # self.workers -- list of sockets connecting to the workers
@@ -257,15 +258,25 @@ class GameClient:
             if el['project'] == self.project:
                 # see if it's a worker using regex 
                 isWorker = bool(re.match('chessEngine-worker-([0-9]+)', el['type'])) 
-                if isWorker:
+                if isWorker and el['lastheardfrom']:
                     # add the worker's id to the id list
                     id = el['type'].split('-', 2)[2] # if we split the type by -, the third element is the worker's id
                     workerIds.append(id)
                     # add the worker's address to the worker addrs list in case this guy becomes the master
-                    workerAddrs.append((el['address', el['port']]))
+                    workerAddrs.append((el['address'], el['port']))
         if self.id == min(workerIds):
             # make ourselves the master
             self.make_master(workerAddrs)
         else:
             # TODO: connect ot the new master
             pass
+
+    def conn_master(self):
+        nsData = self.connect_ns()
+        for el in nsData:
+            if el['project'] == self.project and bool(re.match('chessEngine-master')):
+                host = el['address']
+                port = el['port']
+                self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.worker.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                self.worker.connect((host, port))

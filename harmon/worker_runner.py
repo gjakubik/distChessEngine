@@ -36,7 +36,7 @@ def main():
 
     role = 'worker'
 
-    client = game_client.GameClient(role, k, id, stockfish)
+    client = game_client.GameClient(role, k, id, stockfish, owner, project)
     client.engineId = engineId 
     
     if role == "master":
@@ -55,19 +55,9 @@ def main():
 
     elif role == "worker":
         # master address from server
-        if online:
-            client.engineId = engineId 
-            message = {'endpoint': '/server', 'role': 'worker', 'engineId': client.engineId, 'id': id}
-            response = client.server_send(client.server, message)
-            try:
-                master_host = response['host']
-                master_port = response['port']
-                client.worker.connect((master_host, master_port))
-            except KeyError:
-                print(f'Server sent unexpected JSON: {response}')
-        client.worker.connect((master_host, master_port))
         inputs = [client.server] + [client.worker] 
         outputs = []
+        
     # inputs: 
     #   worker sockets -- messages from worker to master
     #   worker.server -- messages from game server to worker
