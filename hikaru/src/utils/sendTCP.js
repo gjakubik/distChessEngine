@@ -6,8 +6,8 @@ const sendTCP =  (message, timeout) => {
         
         var client = net.connect({port: constants.TCP_GATE_PORT}, function() {
             console.log('connected to server!');
-            console.log(client);
-            //message = { ...message, }
+            console.log(client.localPort);
+            message = { ...message, 'apiPort': client.localPort}
             client.write(JSON.stringify(message));  
          });
          
