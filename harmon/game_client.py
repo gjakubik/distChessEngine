@@ -165,6 +165,7 @@ class GameClient:
 
         # get the actual response
         response = self.receive(client)
+        print(response)
         return response
 
     def send(self, client, message):
@@ -255,10 +256,12 @@ class GameClient:
         workerIds = []
         workerAddrs = []
         for el in nsData:
+            if 'project' not in el.keys() or 'type' not in el.keys():
+                continue
             if el['project'] == self.project:
                 # see if it's a worker using regex 
                 isWorker = bool(re.match('chessEngine-worker-([0-9]+)', el['type'])) 
-                if isWorker and el['lastheardfrom']:
+                if isWorker:
                     # add the worker's id to the id list
                     id = el['type'].split('-', 2)[2] # if we split the type by -, the third element is the worker's id
                     workerIds.append(id)
@@ -274,8 +277,8 @@ class GameClient:
     def conn_master(self):
         nsData = self.connect_ns()
         for el in nsData:
-           # if 'project', 'type', 'lastheardfrom' not in el.keys():
-                #continue
+            if 'project' not in el.keys() or 'type' not in el.keys() or 'lastheardfrom' not in el.keys():
+                continue
             if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
                 host = el['address']
                 port = el['port']
