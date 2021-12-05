@@ -82,7 +82,7 @@ def main():
     while True:
         if not online:
             offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
-
+            continue
         try:
             # periodically update the name server
             if time.time() - client.last_update > 60:
