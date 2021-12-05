@@ -53,16 +53,7 @@ def main():
                 print(f'ERROR: Unexpected json formatting from server: {response}')
         inputs = [client.listener] + [client.server] + client.workers
         outputs = []
-
-    
         
-    # inputs: 
-    #   worker sockets -- messages from worker to master
-    #   worker.server -- messages from game server to worker
-    #   master client listener -- new worker connections
-    #   master_client.server -- messages from game server to master
-
-    print(inputs)
     #outputs = [ worker.worker for worker in master_client.workers ]
     if role == 'master':
         board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
