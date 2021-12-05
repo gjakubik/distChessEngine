@@ -286,4 +286,6 @@ class GameClient:
                 port = int(el['port'])
                 self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.worker.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                print(host)
+                print(port)
                 self.worker.connect((host, port))
