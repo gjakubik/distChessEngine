@@ -174,6 +174,7 @@ def offlineMaster(client, mode, board, cpuColor):
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor):
     # generate k moves for computer, check that they are all valid
+    print(client.stockfish.get_board_visual())
     move = ''
     moves = client.gen_moves()
     if len(moves) < 1:
