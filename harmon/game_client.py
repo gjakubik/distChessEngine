@@ -284,7 +284,7 @@ class GameClient:
                 continue
             if el['project'] == self.project and bool(re.match('chessEngine-master', el['type'])) and el['lastheardfrom']:
                 host = el['address']
-                port = el['port']
+                port = int(el['port'])
                 self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.worker.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 self.worker.connect((host, port))
