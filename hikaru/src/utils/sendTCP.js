@@ -13,6 +13,7 @@ const sendTCP =  (message, timeout) => {
             return;
         }, timeout);
 
+        console.log("Attempting to connect");
         socket.connect({ port: constants.TCP_GATE_PORT }, constants.TCP_GATE_HOST, () => {
             console.log("connected to engine");
             socket.write(JSON.stringify(message));
