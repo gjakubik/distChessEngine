@@ -163,10 +163,6 @@ class GameClient:
         message = message.encode(ENCODING)
         client.sendall(message)
 
-        # get the actual response
-        response = self.receive(client)
-        return response
-
     def send(self, client, message):
         # send message representing message length
         message = json.dumps(message)
@@ -274,6 +270,8 @@ class GameClient:
     def conn_master(self):
         nsData = self.connect_ns()
         for el in nsData:
+           # if 'project', 'type', 'lastheardfrom' not in el.keys():
+                #continue
             if el['project'] == self.project and bool(re.match('chessEngine-master')) and el['lastheardfrom']:
                 host = el['address']
                 port = el['port']

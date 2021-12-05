@@ -97,6 +97,7 @@ def main():
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
                     move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
+                    print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
                         'endpoint': '/move',
