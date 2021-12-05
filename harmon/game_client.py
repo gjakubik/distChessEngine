@@ -37,6 +37,8 @@ class GameClient:
         self.host = socket.gethostbyname(hostname)
         self.port = listener.getsockname()[1]
         self.listener = listener
+        self.listener.listen(5)
+        print(f'Listening on port: {self.port}')
 
         if self.role == 'master':
             self.evals = []
@@ -61,8 +63,6 @@ class GameClient:
         self.evals = []
         self.workers = [] # we dont have to append to this here b/c that gets done automatically when the workers try to connect to us 
         # tcp listener to communicate with worker clients
-        self.listener.listen(5)
-        print(f'Listening on port: {self.port}')
         # update the nameserver to let it know this is the new master
         self.last_update = self.update_ns()
 
