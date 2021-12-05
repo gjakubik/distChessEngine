@@ -16,8 +16,8 @@ DEPTH = 20 # num turns to sim (total, not each side)
 ENGINE_TIME = 100 # milliseconds
 ENCODING = 'utf8'
 
-
-
+GAME_SERVER = 'gavinjakubik.me'
+GAME_SERVER_PORT = 5051
 
 def main():
     # parse argv
@@ -43,6 +43,7 @@ def main():
         print(f'Host: {client.host}  Port: {client.port}')
         # get engine id from server
         if online:
+            client.server.connect((GAME_SERVER, GAME_SERVER_PORT))
             message = {'endpoint': '/server', 'role': 'master', 'host': client.host, 'port': client.server.getsockname()[1],  'numWorkers': k}
             response = client.server_send(client.server, message)
             try:

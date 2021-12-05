@@ -28,7 +28,6 @@ class GameClient:
         self.owner = owner
         self.project = project
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((GAME_SERVER, GAME_SERVER_PORT))
 
         if self.role == 'master':
             self.evals = []
