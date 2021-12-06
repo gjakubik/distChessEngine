@@ -267,11 +267,11 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     if bestMove == None:
         print(moves)
     print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
-    client.stockfish.make_moves_from_current_position([bestMove['Move']])
+    client.stockfish.make_moves_from_current_position([bestMove])
     moveTime = time.time() - moveStart
 
     # make moves on Board object
-    board.push(chess.Move.from_uci(bestMove['Move']))
+    board.push(chess.Move.from_uci(bestMove))
 
     # write to csv
     with open(OUT_FILE, 'a') as file:
