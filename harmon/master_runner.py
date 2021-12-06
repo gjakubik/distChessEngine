@@ -107,7 +107,7 @@ def main():
                 board = chess.Board(board_state) # this is the python-chess board
                 client.stockfish.set_fen_position(board_state)
                 moveNum = 0
-            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, currGame, numGames)
+            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum)
         print(f'Simulated {numGames} games. Goodbye')
         exit()
     while True:
