@@ -102,7 +102,6 @@ class GameClient:
 
     def eval_move(self, board_state, move, depth, time):
         #have stockfish play forward from the board state for some # of moves and report evaluation of it
-
         self.stockfish.set_fen_position(board_state)
         print(move)
         self.stockfish.make_moves_from_current_position([move['Move']])
@@ -121,7 +120,7 @@ class GameClient:
         moves = self.stockfish.get_top_moves(num_moves)
         return moves
 
-    def assign_move(self, color, board_state, move, worker):
+    def assign_move(self, color, board_state, move, worker, moveNum, mode='user', currGame=1, numGames=1):
         # move: representation of starting move assigned to this worker
         # worker: the socket the master has assigned to this worker
         # TODO: create & send message to WORKER telling them to evaluate MOVE
@@ -130,7 +129,11 @@ class GameClient:
             "type": "move",
             "color": color,
             "board_state": board_state,
-            "move": move
+            "move": move,
+            "mode": mode,
+            "currGame": currGame,
+            "numGames": numGames,
+            "moveNum": moveNum
         }
         response = self.send(worker, message)
         return response # either will be None or OK
