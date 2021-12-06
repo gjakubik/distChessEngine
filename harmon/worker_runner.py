@@ -19,7 +19,8 @@ DEFAULT_ELO = 1350
 GAME_SERVER = 'gavinjakubik.me'
 GAME_SERVER_PORT = 5051
 
-OUT_FILE = 'chessResults.csv'
+MOVE_FILE = 'moveStats.csv'
+GAME_FILE = 'gameStats.csv'
 
 def main():
     # parse argv
@@ -136,6 +137,12 @@ def main():
                     s.close()
                 exit()
 
+def writeGameResults(winner, gameNum, cpuColor, elo, numWorkers):
+    with open(GAME_FILE, 'a') as file:
+        csvHeaders = ['game', 'cpu color', 'num workers', 'thinking time', 'winner', 'elo']
+        writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
+        writer.writerow({'game': gameNum, 'cpu color': cpuColor, 'num workers': numWorkers, 'thinking time': ENGINE_TIME, 'winner': winner, 'elo': elo})
+
 # "offline" just means no frontend server
 def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
@@ -153,6 +160,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1
         userMove = input('Please enter a move: ')
         if userMove == 'resign':
             print(f'===== GAME OVER ====== \n===== {cpuColor} WINS =====')
+            writeGameResults(cpuColor, currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
             moveNum += 1
             return moveNum, True
         while not client.stockfish.is_move_correct(userMove):
@@ -162,9 +170,11 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1
         board.push(chess.Move.from_uci(userMove))
         if board.is_insufficient_material():
             print(f'====== DRAW: Insufficient Material =======')
+            writeGameResults("draw", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
             return moveNum+1,True
         if board.can_claim_threefold_repetition():
             print(f'====== DRAW: threefold repetition ======')
+            writeGameResults("draw", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
             return moveNum+1, True
         moveNum += 1
         print(client.stockfish.get_board_visual())
@@ -172,6 +182,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1
         singleNodeMove = client.stockfish.get_best_move_time(1)
         if singleNodeMove == None:
             print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
+            writeGameResults(cpuColor, currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
             return moveNum, True
         client.stockfish.make_moves_from_current_position([singleNodeMove])
         print(f'{"White" if cpuColor == "black" else "Black"} move is: {singleNodeMove}')
@@ -190,10 +201,12 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1
     # check for insuff material draw
     if board.is_insufficient_material():
             print(f'====== DRAW: Insufficient Material =======')
+            writeGameResults("draw", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
             return moveNum, True
     # check for threefold rep draw
     if board.can_claim_threefold_repetition():
         print(f'====== DRAW: threefold repetition =========')
+        writeGameResults("draw", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
         return moveNum, True
     return moveNum, False
 
@@ -206,6 +219,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     moves = client.gen_moves()
     if len(moves) < 1:
         print(f'==== CHECKMATE ==== \n=== {"BLACK" if cpuColor == "white" else "WHITE"} WINS! ===')
+        writeGameResults("black" if cpuColor == "white" else "white", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
         return None, True 
     evaluation = {}
     if len(client.workers) > 0:
@@ -278,7 +292,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     board.push(chess.Move.from_uci(bestMove))
 
     # write to csv
-    with open(OUT_FILE, 'a') as file:
+    with open(MOVE_FILE, 'a') as file:
         writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
         writer.writerow({'game': currGame, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
