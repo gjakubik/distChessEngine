@@ -293,6 +293,7 @@ class GameClient:
                     masterId = min(workerIds)
                     masterAddr = workerAddrs[workerIds.index(masterId)]
                     if self.id == int(masterId):
+                        self.make_master(workerAddrs)
                         while len(self.workers) < self.k:
                             readable, writeable, exceptional = select.select([self.listener], [], [self.listener])
                             for s in readable:
