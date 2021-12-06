@@ -75,23 +75,40 @@ class GameClient:
             max_cp = (None, (-1) * math.inf)
             best_mate = (None, math.inf)
             for e in evals: # e is tuple: (move, {cp|mate: value})
-                if e[1]['type'] == "cp":
-                    if e[1]['value'] > max_cp[1]:
-                        max_cp = (e[0], e[1]['value']) 
-                elif e[1]['type'] == 'mate':
-                    if e[1]['value'] < best_mate[1] and e[1]['value'] >= 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
-                        best_mate = (e[0], e[1]['value'])
+                moveEval = e[1]
+                if moveEval['type'] == "cp":
+                    if moveEval['value'] > max_cp[1]:
+                        max_cp = (e[0], moveEval['value']) 
+                elif moveEval['type'] == 'mate':
+                    if moveEval['value'] < best_mate[1] and moveEval['value'] >= 0: # need to check that it's greater than 0, otherwise black mate in 3 would be marked as favorable!
+                        best_mate = (e[0], moveEval['value'])
+                    elif best_mate[1] <= 0: # the current best mate is a negative number (favors black) so we want to use vals w/ greater than it if > 0, less than it if < 0
+                        if moveEval['value'] > best_mate[1] and moveEval['value'] >= 0: 
+                            best_mate = (e[0], moveEval['value'])
+                        elif moveEval['value'] < best_mate[1]:
+                            best_mate = (e[0], moveEval['value'])
+                    elif best_mate[1] == math.inf:
+                        # always take this move's mate
+                        best_mate = (e[0], moveEval['value'])
         else:
             # negative is favorable (advantage black)
             max_cp = (None, math.inf)
             best_mate = (None, (-1) * math.inf)
             for e in evals:
-                if e[1]['type'] == 'cp':
-                    if e[1]['value'] < max_cp[1]: 
-                        max_cp = (e[0], e[1]['value'])
-                elif e[1]['type'] == 'mate':
-                    if e[1]['value'] > best_mate[1] and e[1]['value'] <= 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
-                        best_mate = (e[0], e[1]['value'])
+                moveEval = e[1]
+                if moveEval['type'] == 'cp':
+                    if moveEval['value'] < max_cp[1]: 
+                        max_cp = (e[0], moveEval['value'])
+                elif moveEval['type'] == 'mate':
+                    if moveEval['value'] > best_mate[1] and moveEval['value'] <= 0: # need to check that it's less than 0, otherwise white mate in 3 would be marked as favorable!
+                        best_mate = (e[0], moveEval['value'])
+                    elif best_mate[1] >= 0: # current best mate is positive (favors white), so we wanna use vals w/ lesser value as long as they are less than 0, greater vals if they're > 0
+                        if moveEval['value'] < best_mate[1] and moveEval['value'] <= 0:
+                            best_mate = (e[0], moveEval['value'])
+                        elif moveEval['value'] > best_mate[1]:
+                            best_mate = (e[0], moveEval['value'])
+                    elif best_mate[1] == (-1) * math.inf:
+                        best_mate = (e[0], moveEval['value'])
         if abs(best_mate[1]) != math.inf: # if we got any moves w/ a mate, we use them 
             return best_mate
         else:

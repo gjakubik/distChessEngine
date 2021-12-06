@@ -256,18 +256,17 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
         if len(client.evals) >= 1:
             bestMove = client.eval_responses(client.evals, cpuColor) 
             evaluation = bestMove[1]
-            bestMove = bestMove[0]
+            bestMove = bestMove[0]['Move']
         else:
-            bestMove = moves[0]
+            bestMove = moves[0]['Move']
+            evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
     else:
         # just use first move 
-        bestMove = moves[0]
+        bestMove = moves[0]['Move']
+        evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
     if bestMove == None:
         print(moves)
     print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
-    if evaluation != {}:
-        print(f'Evaluation for move: {evaluation}')
-    
     client.stockfish.make_moves_from_current_position([bestMove['Move']])
     moveTime = time.time() - moveStart
 
