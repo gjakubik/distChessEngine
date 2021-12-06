@@ -289,7 +289,7 @@ class GameClient:
             while True:
                 try:
                     self.worker.connect(masterAddr)
-                except ConnectionResetError:
+                except ConnectionResetError and ConnectionRefusedError:
                     workerIds.remove(masterId)
                     workerAddrs.remove(masterAddr)
                     masterId = min(workerIds)
