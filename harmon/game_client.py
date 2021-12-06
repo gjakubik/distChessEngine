@@ -286,7 +286,6 @@ class GameClient:
             while True:
                 try:
                     self.worker.connect(masterAddr)
-                    break
                 except ConnectionRefusedError:
                     workerIds.remove(masterId)
                     workerAddrs.remove(masterAddr)
@@ -302,6 +301,7 @@ class GameClient:
                                     (sock, addr) = self.listener.accept()
                                     self.workers.append(sock)
                         break
+                break
 
     def conn_master(self):
         nsData = self.connect_ns()
