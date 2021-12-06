@@ -173,7 +173,10 @@ class GameClient:
         client.sendall(message)
 
         # get the actual response
-        response = client.recv(HEADER_SIZE)
+        try:
+            response = client.recv(HEADER_SIZE)
+        except ConnectionResetError:
+            return False
         return response
 
     def receive(self, client):
