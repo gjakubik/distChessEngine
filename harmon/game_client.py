@@ -283,11 +283,11 @@ class GameClient:
 
             self.worker.close()
             self.worker = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            #while True:
-                #try:
-            self.worker.connect(masterAddr)
-                #except ConnectionRefusedError:
-            '''workerIds.remove(masterId)
+            while True:
+                try:
+                    self.worker.connect(masterAddr)
+                except ConnectionResetError:
+                    workerIds.remove(masterId)
                     workerAddrs.remove(masterAddr)
                     masterId = min(workerIds)
                     masterAddr = workerAddrs[workerIds.index(masterId)]
@@ -301,7 +301,7 @@ class GameClient:
                                     (sock, addr) = self.listener.accept()
                                     self.workers.append(sock)
                         break
-                break'''
+                break
 
     def conn_master(self):
         nsData = self.connect_ns()
