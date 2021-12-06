@@ -27,6 +27,11 @@ def main():
     project = sys.argv[3]
     k = int(sys.argv[4])
     online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    if not online:
+        numGames = int(input('How many games would you like to play?: '))
+        gameCount = 0
+        newGame = False
+
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"

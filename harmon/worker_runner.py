@@ -132,6 +132,7 @@ def main():
                                 message = {
                                     'endpoint': f'/server/{client.engineId}',
                                     'method': 'PUT',
+                                    'engineId': client.engineId,
                                     'role': 'master',
                                     'host': client.host,
                                     'port': client.server.getsockname()[1],
