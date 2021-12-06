@@ -123,7 +123,7 @@ class GameClient:
         print(move)
         self.stockfish.make_moves_from_current_position([move['Move']])
         evalStart = time.time()
-        while time.time() - evalStart < thinkingTime:
+        while time.time() - evalStart < thinkingTime/1000:
             next_move = self.stockfish.get_best_move_time(thinkingTime)
             if next_move == None: 
                 break
