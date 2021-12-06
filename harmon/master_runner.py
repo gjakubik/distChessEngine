@@ -101,7 +101,8 @@ def main():
                 moveNum = 0
                 gameCount += 1
             moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, gameCount)
-            
+        print(f'Simulated {numGames} games. Goodbye')
+        exit()
     while True:
         try:
             # periodically update the name server
@@ -150,7 +151,9 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
     if cpuColor == 'white':
-        distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, gameCount)
+        move, newGame = distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, gameCount)
+        if newGame:
+            return moveNum, True
         color = 'black'
         print(client.stockfish.get_board_visual())
         moveNum += 1
@@ -188,8 +191,11 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
     board_state = client.stockfish.get_fen_position()
     
     if cpuColor == 'black':
-        distCpuTurn(client, board_state, board, cpuColor)
+        move, newGame = distCpuTurn(client, board_state, board, cpuColor, moveNum, gameCount)
+        if newGame == True:
+            return moveNum, True
         print(client.stockfish.get_board_visual())
+        moveNum += 1
 
     # check for insuff material draw
     if board.is_insufficient_material():
@@ -204,17 +210,18 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor, moveNum, gameCount=0):
     # generate k moves for computer, check that they are all valid
+    moveStart = time.time()
     print(client.stockfish.get_board_visual())
     move = ''
     moves = client.gen_moves()
     if len(moves) < 1:
         print(f'==== CHECKMATE ==== \n=== {"BLACK" if cpuColor == "white" else "WHITE"} WINS! ===')
-        exit()
+        return None, True 
     evaluation = {}
     if len(client.workers) > 0:
         client.evals = []
         iter_list = zip(list(client.workers), list(moves))  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
-        moveStart = time.time()
+        
         for worker, move in iter_list:
             print(f'Sending {move}')
             response = client.assign_move(cpuColor, board_state, move, worker)
@@ -284,7 +291,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, gameCount=0):
         writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
         writer.writerow({'game': gameCount, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
-    return bestMove
+    return bestMove, False
 
 
 def master_recv_server(client, s):
