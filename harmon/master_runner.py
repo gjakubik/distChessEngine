@@ -40,8 +40,6 @@ def main():
         writer.writeheader()
         file.close()
 
-
-
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
@@ -92,16 +90,18 @@ def main():
                 client.workers.append(sock)
     print(client.stockfish.get_board_visual())
 
-
-
     if not online:
+        moveNum = 0
         while gameCount <= numGames:
             if newGame:
                 # reset the board and stuff
-                pass
-            offlineMaster(client, mode, board, cpuColor)
-            gameCount += 1
-
+                board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+                board = chess.Board(board_state) # this is the python-chess board
+                client.stockfish.set_fen_position(board_state)
+                moveNum = 0
+                gameCount += 1
+            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, gameCount)
+            
     while True:
         try:
             # periodically update the name server
@@ -153,13 +153,15 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
         distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, gameCount)
         color = 'black'
         print(client.stockfish.get_board_visual())
+        moveNum += 1
 
     if mode == 'user':
         # prompt user for move
         userMove = input('Please enter a move: ')
         if userMove == 'resign':
             print(f'===== GAME OVER ====== \n===== {cpuColor} WINS =====')
-            exit()
+            moveNum += 1
+            return moveNum, True
         while not client.stockfish.is_move_correct(userMove):
             print(f'userMove is not valid. Moves must be of format: e2e4')
             userMove = input('Please enter a move: ')
@@ -167,21 +169,22 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
         board.push(chess.Move.from_uci(userMove))
         if board.is_insufficient_material():
             print(f'====== DRAW: Insufficient Material =======')
-            exit()
+            return moveNum+1,True
         if board.can_claim_threefold_repetition():
             print(f'====== DRAW: threefold repetition ======')
-            exit()
-
+            return moveNum+1, True
+        moveNum += 1
         print(client.stockfish.get_board_visual())
     else: # in cpu mode, the the non distributed side is just playing with single node stockfish
         singleNodeMove = client.stockfish.get_best_move_time(1)
         if singleNodeMove == None:
             print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
-            exit()
+            return moveNum, True
         client.stockfish.make_moves_from_current_position([singleNodeMove])
         print(f'{"White" if cpuColor == "black" else "Black"} move is: {singleNodeMove}')
         board.push(chess.Move.from_uci(singleNodeMove))
         print(client.stockfish.get_board_visual())
+        moveNum += 1
     board_state = client.stockfish.get_fen_position()
     
     if cpuColor == 'black':
@@ -191,11 +194,12 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
     # check for insuff material draw
     if board.is_insufficient_material():
             print(f'====== DRAW: Insufficient Material =======')
-            exit()
+            return moveNum, True
     # check for threefold rep draw
     if board.can_claim_threefold_repetition():
         print(f'====== DRAW: threefold repetition =========')
-        exit()
+        return moveNum, True
+    return moveNum, False
 
 # code to decide move on distributed CPU's turn
 def distCpuTurn(client, board_state, board, cpuColor, moveNum, gameCount=0):
