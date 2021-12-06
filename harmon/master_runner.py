@@ -13,13 +13,12 @@ import csv
 import chess
 
 # globals
-DEPTH = 20 # num turns to sim (total, not each side)
 ENGINE_TIME = 100 # milliseconds
 ENCODING = 'utf8'
 
 GAME_SERVER = 'gavinjakubik.me'
 GAME_SERVER_PORT = 5051
-
+DEFAULT_ELO = 1350
 OUT_FILE = 'chessResults.csv'
 
 def main():
@@ -29,8 +28,13 @@ def main():
     project = sys.argv[3]
     k = int(sys.argv[4])
     online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    try:
+        elo = int(sys.argv[6])
+    except ValueError and IndexError:
+        elo = DEFAULT_ELO
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
+    stockfish.set_elo_rating(elo)
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient('master', k, 0, stockfish,  owner, project)
@@ -238,7 +242,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
                     break
-        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
+        client.time_out = time.time() + 5 * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):

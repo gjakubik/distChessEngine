@@ -13,10 +13,9 @@ import csv
 import chess
 
 # globals
-DEPTH = 20 # num turns to sim (total, not each side)
 ENGINE_TIME = 100 # milliseconds
 ENCODING = 'utf8'
-
+DEFAULT_ELO = 1350
 GAME_SERVER = 'gavinjakubik.me'
 GAME_SERVER_PORT = 5051
 
@@ -30,12 +29,15 @@ def main():
     id = int(sys.argv[4])
     k = int(sys.argv[5])
     online = True if sys.argv[6] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    elo = int(sys.argv[7])
     if online:
-        engineId = sys.argv[7]
+        engineId = sys.argv[8]
     else:
         engineId = 0
+    
         
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
+    stockfish.set_elo_rating(elo)
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     role = 'worker'
@@ -225,7 +227,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
                     break
-        client.time_out = time.time() + 3 * DEPTH * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
+        client.time_out = time.time() + 5 * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
@@ -365,7 +367,7 @@ def worker_recv_master(client, s):
         ack_message = json.dumps({"type": 'ack', 'status': 'OK', 'id': client.id})
         s.sendall(ack_message.encode(ENCODING))
         # evaluate the move and send the evaluation to the master
-        eval_message = client.eval_move(board_state, move, DEPTH, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
+        eval_message = client.eval_move(board_state, move, ENGINE_TIME) # 99% sure this is the reason why we fail -- the master isn't currently responding to the eval moves and so it's throwing a typeError
         if not client.send(s, eval_message):
             # master failed -- need to trigger an election
             client.handle_election()

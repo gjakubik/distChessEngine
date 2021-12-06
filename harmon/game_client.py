@@ -117,13 +117,14 @@ class GameClient:
                 print(e[1]['value'])
             return max_cp
 
-    def eval_move(self, board_state, move, depth, time):
+    def eval_move(self, board_state, move, thinkingTime):
         #have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
         print(move)
         self.stockfish.make_moves_from_current_position([move['Move']])
-        for i in range(depth):
-            next_move = self.stockfish.get_best_move_time(time)
+        evalStart = time.time()
+        while time.time() - evalStart < thinkingTime:
+            next_move = self.stockfish.get_best_move_time(thinkingTime)
             if next_move == None: 
                 break
             self.stockfish.make_moves_from_current_position([next_move])
