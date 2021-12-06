@@ -112,15 +112,11 @@ class GameClient:
         if abs(best_mate[1]) != math.inf: # if we got any moves w/ a mate, we use them 
             return best_mate
         else:
-            # print out the cp values of given moves
-            for e in evals:
-                print(e[1]['value'])
             return max_cp
 
     def eval_move(self, board_state, move, thinkingTime):
         #have stockfish play forward from the board state for some # of moves and report evaluation of it
         self.stockfish.set_fen_position(board_state)
-        print(move)
         self.stockfish.make_moves_from_current_position([move['Move']])
         evalStart = time.time()
         while time.time() - evalStart < thinkingTime/1000:
@@ -128,7 +124,6 @@ class GameClient:
             if next_move == None: 
                 break
             self.stockfish.make_moves_from_current_position([next_move])
-            print(f'Move: {next_move}')
         evaluation = self.stockfish.get_evaluation()
         message = {'type': 'evaluation','engineId': self.engineId, 'id': self.id, 'move': move, 'eval_type': evaluation['type'], 'eval_value': evaluation['value']}
         return message

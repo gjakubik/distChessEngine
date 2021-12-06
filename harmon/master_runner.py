@@ -268,7 +268,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
                     # the rest of the logic SHOULD result in code skipping to bestMove assignment where this move is chosen by default
                     client.evals.append((move["Move"], {"cp": move["Centipawn"], "mate": move["Mate"]}))
                     break
-        client.time_out = time.time() + 5 * ENGINE_TIME / 1000 # give workers 3 * the amount of time it takes to calc their eval to respond
+        client.time_out = time.time() + 5 * ENGINE_TIME / 1000 # give workers 5 * the amount of time it takes to calc their eval to respond
 
         # wait for responses from the workers
         while len(client.evals) < len(client.workers):
