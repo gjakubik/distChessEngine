@@ -48,15 +48,15 @@ def main():
     while True:
         if client.role == 'master' and not online:
             moveNum = 0
-            while client.gameCount <= client.numGames:
+            while client.currGame <= client.numGames:
                 if newGame:
                     # reset the board and stuff
                     board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
                     board = chess.Board(board_state) # this is the python-chess board
                     client.stockfish.set_fen_position(board_state)
                     moveNum = 0
-                    client.gameCount += 1
-                moveNum, newGame = offlineMaster(client, client.mode, board, client.color, moveNum, client.gameCount)
+                    client.currGame += 1
+                moveNum, newGame = offlineMaster(client, client.mode, board, client.color, moveNum, client.currGame)
             print(f'Simulated {client.numGames} games. Goodbye')
             exit()
 
@@ -133,11 +133,11 @@ def main():
                 exit()
 
 # "offline" just means no frontend server
-def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=1):
+def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
     if cpuColor == 'white':
-        move, newGame = distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, mode, gameCount, numGames)
+        move, newGame = distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, mode, currGame, numGames)
         if newGame:
             return moveNum, True
         color = 'black'
@@ -177,7 +177,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=
     board_state = client.stockfish.get_fen_position()
     
     if cpuColor == 'black':
-        move, newGame = distCpuTurn(client, board_state, board, cpuColor, moveNum, mode, gameCount, numGames)
+        move, newGame = distCpuTurn(client, board_state, board, cpuColor, moveNum, mode, currGame, numGames)
         if newGame == True:
             return moveNum, True
         print(client.stockfish.get_board_visual())
@@ -194,7 +194,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=
     return moveNum, False
 
 # code to decide move on distributed CPU's turn
-def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', gameCount=1, numGames=1):
+def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', currGame=1, numGames=1):
     # generate k moves for computer, check that they are all valid
     moveStart = time.time()
     print(client.stockfish.get_board_visual())
@@ -210,7 +210,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', game
         
         for worker, move in iter_list:
             print(f'Sending {move}')
-            response = client.assign_move(cpuColor, board_state, move, worker, moveNum, mode, gameCount, numGames)
+            response = client.assign_move(cpuColor, board_state, move, worker, moveNum, mode, currGame, numGames)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
@@ -276,7 +276,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', game
     with open(OUT_FILE, 'a') as file:
         writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
-        writer.writerow({'game': gameCount, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
+        writer.writerow({'game': currGame, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
     return bestMove, False
 
 def master_recv_server(client, s):

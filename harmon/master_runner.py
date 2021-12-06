@@ -37,7 +37,7 @@ def main():
     
     if not online:
         numGames = int(input('How many games would you like to play?: '))
-        gameCount = 1
+        currGame = 1
         newGame = False
         # create and format csv file to ouptut results to
         csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
@@ -93,15 +93,15 @@ def main():
 
     if not online:
         moveNum = 0
-        while gameCount <= numGames:
+        while currGame <= numGames:
             if newGame:
                 # reset the board and stuff
                 board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
                 board = chess.Board(board_state) # this is the python-chess board
                 client.stockfish.set_fen_position(board_state)
                 moveNum = 0
-                gameCount += 1
-            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, gameCount, numGames)
+                currGame += 1
+            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, currGame, numGames)
         print(f'Simulated {numGames} games. Goodbye')
         exit()
     while True:
@@ -122,7 +122,7 @@ def main():
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, mode, gameCount, numGames)
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, mode, currGame, numGames)
                     print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
@@ -148,11 +148,11 @@ def main():
                 exit()
 
 # "offline" just means no frontend server
-def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=1):
+def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
     if cpuColor == 'white':
-        move, newGame = distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, mode, gameCount, numGames)
+        move, newGame = distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, mode, currGame, numGames)
         if newGame:
             return moveNum, True
         color = 'black'
@@ -192,7 +192,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=
     board_state = client.stockfish.get_fen_position()
     
     if cpuColor == 'black':
-        move, newGame = distCpuTurn(client, board_state, board, cpuColor, moveNum, mode, gameCount, numGames)
+        move, newGame = distCpuTurn(client, board_state, board, cpuColor, moveNum, mode, currGame, numGames)
         if newGame == True:
             return moveNum, True
         print(client.stockfish.get_board_visual())
@@ -209,7 +209,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=1, numGames=
     return moveNum, False
 
 # code to decide move on distributed CPU's turn
-def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', gameCount=1, numGames=1):
+def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', currGame=1, numGames=1):
     # generate k moves for computer, check that they are all valid
     moveStart = time.time()
     print(client.stockfish.get_board_visual())
@@ -225,7 +225,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', game
         
         for worker, move in iter_list:
             print(f'Sending {move}')
-            response = client.assign_move(cpuColor, board_state, move, worker, moveNum, mode, gameCount, numGames)
+            response = client.assign_move(cpuColor, board_state, move, worker, moveNum, mode, currGame, numGames)
             if not response:
                 print(f'Lost worker {client.workers.index(worker) + 1}' )
                 client.workers.remove(worker)
@@ -291,7 +291,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', game
     with open(OUT_FILE, 'a') as file:
         writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
-        writer.writerow({'game': gameCount, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
+        writer.writerow({'game': currGame, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
     return bestMove, False
 
 
