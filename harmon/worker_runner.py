@@ -260,12 +260,14 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
             evaluation = bestMove[1]
             bestMove = bestMove[0]['Move']
         else:
-            bestMove = moves[0]['Move']
+            bestMove = moves[0]
             evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
+            bestMove = bestMove['Move']
     else:
         # just use first move 
-        bestMove = moves[0]['Move']
+        bestMove = moves[0]
         evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
+        bestMove = bestMove['Move']
     if bestMove == None:
         print(moves)
     print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')

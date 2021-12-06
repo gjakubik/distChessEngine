@@ -99,12 +99,14 @@ def main():
         moveNum = 0
         while currGame <= numGames:
             if newGame:
+                currGame += 1
+                if currGame > numGames:
+                    break
                 # reset the board and stuff
                 board_state = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
                 board = chess.Board(board_state) # this is the python-chess board
                 client.stockfish.set_fen_position(board_state)
                 moveNum = 0
-                currGame += 1
             moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, currGame, numGames)
         print(f'Simulated {numGames} games. Goodbye')
         exit()
@@ -275,12 +277,14 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
             evaluation = bestMove[1]
             bestMove = bestMove[0]['Move']
         else:
-            bestMove = moves[0]['Move']
+            bestMove = moves[0]
             evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
+            bestMove = bestMove['Move']
     else:
         # just use first move 
-        bestMove = moves[0]['Move']
+        bestMove = moves[0]
         evaluation = bestMove['Mate'] if bestMove['Mate'] != None else bestMove['Centipawn']
+        bestMove = bestMove['Move']
     if bestMove == None:
         print(moves)
     print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
