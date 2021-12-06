@@ -47,7 +47,8 @@ def main():
     
     while True:
         if client.role == 'master' and not online:
-            moveNum = 0
+            moveNum = client.moveNum
+            newGame = False
             while client.currGame <= client.numGames:
                 if newGame:
                     # reset the board and stuff
