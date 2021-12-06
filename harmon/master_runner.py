@@ -9,6 +9,7 @@ import game_client
 import select
 import socket
 import json
+import csv 
 import chess
 
 # globals
@@ -19,6 +20,7 @@ ENCODING = 'utf8'
 GAME_SERVER = 'gavinjakubik.me'
 GAME_SERVER_PORT = 5051
 
+OUT_FILE = 'chessResults.csv'
 
 def main():
     # parse argv
@@ -29,8 +31,15 @@ def main():
     online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
     if not online:
         numGames = int(input('How many games would you like to play?: '))
-        gameCount = 0
+        gameCount = 1
         newGame = False
+        # create and format csv file to ouptut results to
+        csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
+        file = open(OUT_FILE, 'w')
+        writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
+        writer.writeheader()
+        file.close()
+
 
 
     stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
@@ -83,10 +92,17 @@ def main():
                 client.workers.append(sock)
     print(client.stockfish.get_board_visual())
 
+
+
+    if not online:
+        while gameCount <= numGames:
+            if newGame:
+                # reset the board and stuff
+                pass
+            offlineMaster(client, mode, board, cpuColor)
+            gameCount += 1
+
     while True:
-        if not online:
-            offlineMaster(client, mode, board, cpuColor) # this does the stuff later in the while loop + in master_recv_server just for offline testing
-            continue
         try:
             # periodically update the name server
             if time.time() - client.last_update > 60:
@@ -104,7 +120,7 @@ def main():
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color)
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, gameCount)
                     print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
@@ -130,11 +146,11 @@ def main():
                 exit()
 
 # "offline" just means no frontend server
-def offlineMaster(client, mode, board, cpuColor):
+def offlineMaster(client, mode, board, cpuColor, moveNum, gameCount=0):
     # offline analog for master_recv_server(), it just prompts user for move input and takes board info that way instead of via socket communication
     color = 'white'
     if cpuColor == 'white':
-        distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor)
+        distCpuTurn(client, client.stockfish.get_fen_position(), board, cpuColor, moveNum, gameCount)
         color = 'black'
         print(client.stockfish.get_board_visual())
 
@@ -182,7 +198,7 @@ def offlineMaster(client, mode, board, cpuColor):
         exit()
 
 # code to decide move on distributed CPU's turn
-def distCpuTurn(client, board_state, board, cpuColor):
+def distCpuTurn(client, board_state, board, cpuColor, moveNum, gameCount=0):
     # generate k moves for computer, check that they are all valid
     print(client.stockfish.get_board_visual())
     move = ''
@@ -194,6 +210,7 @@ def distCpuTurn(client, board_state, board, cpuColor):
     if len(client.workers) > 0:
         client.evals = []
         iter_list = zip(list(client.workers), list(moves))  # have to loop over copy of the lists bc we might need to remove from them during the loop if we detect failure
+        moveStart = time.time()
         for worker, move in iter_list:
             print(f'Sending {move}')
             response = client.assign_move(cpuColor, board_state, move, worker)
@@ -253,10 +270,16 @@ def distCpuTurn(client, board_state, board, cpuColor):
         print(f'Evaluation for move: {evaluation}')
     
     client.stockfish.make_moves_from_current_position([bestMove['Move']])
+    moveTime = time.time() - moveStart
 
     # make moves on Board object
     board.push(chess.Move.from_uci(bestMove['Move']))
 
+    # write to csv
+    with open(OUT_FILE, 'a') as file:
+        writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
+        writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
+        writer.writerow({'game': gameCount, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})
     return bestMove
 
 
