@@ -49,6 +49,7 @@ def main():
         if client.role == 'master' and not online:
             moveNum = client.moveNum
             newGame = False
+            board.set_fen(client.stockfish.get_fen_position())
             while client.currGame <= client.numGames:
                 if newGame:
                     # reset the board and stuff
