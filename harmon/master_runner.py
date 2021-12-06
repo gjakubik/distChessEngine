@@ -107,7 +107,7 @@ def main():
                 board = chess.Board(board_state) # this is the python-chess board
                 client.stockfish.set_fen_position(board_state)
                 moveNum = 0
-            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum)
+            moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, currGame, numGames)
         print(f'Simulated {numGames} games. Goodbye')
         exit()
     while True:
@@ -128,7 +128,7 @@ def main():
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, currGame, numGames)
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum)
                     print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
