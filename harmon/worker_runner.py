@@ -368,7 +368,10 @@ def worker_recv_master(client, s):
         # master failed -- need to trigger an election
         client.handle_election()
         return False
-
+    if type == 'shutdown':
+        ack_message = json.dumps({"type": 'ack', 'status': 'OK', 'id': client.id})
+        s.sendall(ack_message.encode(ENCODING))
+        exit()
     if type == 'move':
         # numGames, currGame, color, mode, and moveNum are only used if/when the client gets converted to master. The easiest way to keep track of them is to send them with every message
         client.numGames = message['numGames']

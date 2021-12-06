@@ -116,6 +116,10 @@ def main():
                 moveNum = 0
             moveNum, newGame = offlineMaster(client, mode, board, cpuColor, moveNum, currGame, numGames)
         print(f'Simulated {numGames} games. Goodbye')
+        # send shutdown messages to workers then exit
+        message = {'type': 'shutdown'}
+        for worker in client.workers:
+            response = client.send(worker, message)
         exit()
     while True:
         try:
