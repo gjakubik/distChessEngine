@@ -13,7 +13,7 @@ import csv
 import chess
 
 # globals
-ENGINE_TIME = 500 # milliseconds
+ENGINE_TIME = 2000 # milliseconds
 ENCODING = 'utf8'
 
 GAME_SERVER = 'gavinjakubik.me'
