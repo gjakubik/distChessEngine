@@ -120,7 +120,7 @@ class GameClient:
         self.stockfish.make_moves_from_current_position([move['Move']])
         evalStart = time.time()
         while time.time() - evalStart < thinkingTime/1000:
-            next_move = self.stockfish.get_best_move_in_time(50)
+            next_move = self.stockfish.get_best_move_time(10)
             if next_move == None: 
                 break
             self.stockfish.make_moves_from_current_position([next_move])
