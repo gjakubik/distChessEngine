@@ -13,7 +13,7 @@ import csv
 import chess
 
 # globals
-ENGINE_TIME = 500 # milliseconds
+ENGINE_TIME = 250 # milliseconds
 ENCODING = 'utf8'
 DEFAULT_ELO = 1350
 GAME_SERVER = 'gavinjakubik.me'
