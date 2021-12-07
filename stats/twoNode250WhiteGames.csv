@@ -1,0 +1,26 @@
+game,cpu color,num workers,thinking time,winner,elo
+1,white,2,250,white,2600
+2,white,2,250,draw,2600
+3,white,2,250,white,2600
+4,white,2,250,white,2600
+5,white,2,250,white,2600
+6,white,2,250,draw,2600
+7,white,2,250,white,2600
+8,white,2,250,draw,2600
+9,white,2,250,black,2600
+10,white,2,250,black,2600
+11,white,2,250,white,2600
+12,white,2,250,draw,2600
+13,white,2,250,white,2600
+14,white,2,250,black,2600
+15,white,2,250,black,2600
+16,white,2,250,black,2600
+17,white,2,250,black,2600
+18,white,2,250,white,2600
+19,white,2,250,draw,2600
+20,white,2,250,white,2600
+21,white,2,250,white,2600
+22,white,2,250,white,2600
+23,white,2,250,draw,2600
+24,white,2,250,black,2600
+25,white,2,250,black,2600
