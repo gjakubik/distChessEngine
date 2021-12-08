@@ -65,28 +65,37 @@ Now, whenever you log on you will be able to activate this environment to run th
 
 #### *Spinning up a Master and Workers*
 The backend of this chess engine is made up of a master node and several worker nodes, the runner files for which can be found in the `/harmon` directory. 
-To run the engine you must run a master client and any number of worker clients. 
-A master client can be started by running the `master_runner.py` file in the `/harmon` directory:
+Before running the engine, you must allow the Stockfish distribution included in our repo to be executable. This can be done from the repository's root directory using the following command:
 ```bash
-./harmon/master_runner.py OWNER PROJECT K ONLINE ELO
-#OWNER -- An ID for whoever is running the program. This will be saved on the Notre Dame catalog server.
-#PROJECT -- A name for the cluster of clients you are deploying. This will be saved on the Notre Dame catalog server.
-#K -- The number of workers you will deploy (or 0 if you want to run the engine as a single node)
-#ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' if you want to run the engine on its own in the command-line.
-#ELO -- Argument to set the elo of the stockfish engine underneath our client. 
-``` 
-
-A worker client can be started by running the `worker_runner.py` file in the `/harmon` directory:
-```bash
-./harmon/worker_runner.py OWNER PROJECT ID K ONLINE ELO ENGINE_ID
-#OWNER -- An ID for whoever is running the engine cluster. Should be the same as what was used for the master client.
-#PROJECT -- A name for the engine cluster being deployed. Should be the same as what was used for the master client.
-#ID -- A numerical ID for this worker. Must be unique from the IDs of other workers in the cluster.
-#K -- The number of workers being deployed in the cluster. Should be the same was what was used for the master client.
-#ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' otherwise. Should be the same as what was used for the master client
-#ELO -- Argument to set the elo of the stockfish engine underneath the client.
-#ENGINE_ID -- This field only needs to be set if the cluster is interfacing with the front-end. The master client will print out and engine_id it gets from our front-end server. That ID should be pasted into this field so the worker can properly communicate with the front-end.
+chmod +x /magnus/stockfish-10-linux/Linux/stockfish_10_x64
 ```
+
+To run the engine you must run a master client and any number of worker clients. 
+A master client can be started by navigating to the `/harmon` directory and running the `master_runner.py` file:
+```bash
+chmod +x master_runner.py
+./master_runner.py OWNER PROJECT K ONLINE ELO
+'''
+The command-line arguments are defined as follows: 
+* OWNER -- An ID for whoever is running the program. This will be saved on the Notre Dame catalog server.
+* PROJECT -- A name for the cluster of clients you are deploying. This will be saved on the Notre Dame catalog server.
+* K -- The number of workers you will deploy (or 0 if you want to run the engine as a single node)
+* ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' if you want to run the engine on its own in the command-line.
+* ELO -- Argument to set the elo of the stockfish engine underneath our client. 
+
+A worker client can be started by navigating to the `/harmon` directory and running the `worker_runner.py` file:
+```bash
+chmod +x worker_runner.py
+./worker_runner.py OWNER PROJECT ID K ONLINE ELO ENGINE_ID
+'''
+The command-line arguments are defined as follows:
+* OWNER -- An ID for whoever is running the engine cluster. Should be the same as what was used for the master client.
+* PROJECT -- A name for the engine cluster being deployed. Should be the same as what was used for the master client.
+* ID -- A numerical ID for this worker. Must be unique from the IDs of other workers in the cluster.
+* K -- The number of workers being deployed in the cluster. Should be the same was what was used for the master client.
+* ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' otherwise. Should be the same as what was used for the master client
+* ELO -- Argument to set the elo of the stockfish engine underneath the client.
+* ENGINE_ID -- This field only needs to be set if the cluster is interfacing with the front-end. The master client will print out and engine_id it gets from our front-end server. That ID should be pasted into this field so the worker can properly communicate with the front-end.
 
 ### React Client
 
