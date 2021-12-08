@@ -20,6 +20,24 @@ const create = async (host, port, numWorkers) => {
     }
 };
 
+const update = async (engineId, host, port, numWorkers) => {
+    const Server = Parse.Object.extend('Server');
+    const query = new Parse.Query(Server);
+
+    try {
+        const res = await query.get(engineId);
+
+        res.set('host', host);
+        res.set('port', port);
+        res.set('numWorkers', numWorkers);
+        console.log("updating server info...");
+        const newServer = await res.save();
+        console.log("Info updated");
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 // Return server response object on success, null on failure
 const get = async (serverId) => {
     const Server = Parse.Object.extend('Server');
@@ -42,4 +60,4 @@ const get = async (serverId) => {
     }
 };
 
-module.exports = { create, get }
+module.exports = { create, get, update }
