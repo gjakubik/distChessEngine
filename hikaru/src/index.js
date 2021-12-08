@@ -63,33 +63,6 @@ app.post('/game', async (req, res) => {
     };
     console.log(JSON.stringify({"gameId": gameId}));
     res.status(200).send(JSON.stringify({"gameId": gameId}));
-
-    /*
-    console.log("sending message to engine");
-    const serverObj = await server.get(req.body.engine1Id);
-    // Send gameId to engine
-    const message = {
-        "owner": req.body.username,
-        "type": "game_id",
-        "gameId": gameId,
-        "endpoint": "",
-        "host": serverObj.host,
-        "port": serverObj.port
-    }
-    
-    if (err !== "") {
-        res.status(400).send(err);
-        return;
-    }
-
-    // Send back gameId
-    if (resp === 'OK') {
-        res.status(200).send({"gameId": gameId});
-        return;
-    } else {
-        res.send("Engine declined game");
-    }
-    */
 });
 
 app.post('/move', async (req, res) => {
@@ -147,7 +120,24 @@ app.get('/server/:engineId', async (req, res) => {
     }
 
     res.status(200).send(resp);
-})
+});
+
+app.put('/server/:engineId', async (req, res) => {
+    try {
+        server.update(req.params.engineId, req.body.host, req.body.port, req.body.numWorkers);
+        
+        res.status(200).send(JSON.stringify({"data": "OK"}));
+    } catch (err) {
+        res.status(400).send(JSON.stringify({"data": "NOT OK"}))
+    }
+
+    
+    console.log("Updating parse game");
+
+    
+
+
+});
 
 // starting the server
 https.createServer({
