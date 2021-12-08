@@ -64,12 +64,29 @@ After installing the dependencies for this project, you must find the location o
 Now, whenever you log on you will be able to activate this environment to run the project with `conda activate distChessEngine`.
 
 #### *Spinning up a Master and Workers*
-The game engine can be started by running the `client_runner.py` file in the `/harmon` directory:
+The backend of this chess engine is made up of a master node and several worker nodes, the runner files for which can be found in the `/harmon` directory. 
+To run the engine you must run a master client and any number of worker clients. 
+A master client can be started by running the `master_runner.py` file in the `/harmon` directory:
 ```bash
-./harmon/client_runner.py "PATH_TO_STOCKFISH" PROJECT OWNER K
+./harmon/master_runner.py OWNER PROJECT K ONLINE ELO
+#OWNER -- An ID for whoever is running the program. This will be saved on the Notre Dame catalog server.
+#PROJECT -- A name for the cluster of clients you are deploying. This will be saved on the Notre Dame catalog server.
+#K -- The number of workers you will deploy (or 0 if you want to run the engine as a single node)
+#ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' if you want to run the engine on its own in the command-line.
+#ELO -- Argument to set the elo of the stockfish engine underneath our client. 
+``` 
+
+A worker client can be started by running the `worker_runner.py` file in the `/harmon` directory:
+```bash
+./harmon/worker_runner.py OWNER PROJECT ID K ONLINE ELO ENGINE_ID
+#OWNER -- An ID for whoever is running the engine cluster. Should be the same as what was used for the master client.
+#PROJECT -- A name for the engine cluster being deployed. Should be the same as what was used for the master client.
+#ID -- A numerical ID for this worker. Must be unique from the IDs of other workers in the cluster.
+#K -- The number of workers being deployed in the cluster. Should be the same was what was used for the master client.
+#ONLINE -- 'True' if you want the engine to interface with our front-end React client, 'False' otherwise. Should be the same as what was used for the master client
+#ELO -- Argument to set the elo of the stockfish engine underneath the client.
+#ENGINE_ID -- This field only needs to be set if the cluster is interfacing with the front-end. The master client will print out and engine_id it gets from our front-end server. That ID should be pasted into this field so the worker can properly communicate with the front-end.
 ```
-Note: you must surround the stockfish path in quotes, otherwise the program will throw an error. 
-Project is the name of your game engine cluster. Your clients will be stored on the nd nameserver under this project, allowing them to easily discover and communicate with each other. OWNER is your name and is similarly used by the nameserver to keep track of who owns the processes. K will be the number of worker clients you want to run the program with. A K value of 0 indicates that you want to run with no workers and only the master client. 
 
 ### React Client
 
