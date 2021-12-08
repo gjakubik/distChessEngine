@@ -139,7 +139,7 @@ def main():
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, currGame, numGames)
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum)
                     print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
