@@ -21,22 +21,21 @@ GAME_SERVER_PORT = 5051
 DEFAULT_ELO = 1350
 MOVE_FILE = 'moveStats.csv'
 GAME_FILE = 'gameStats.csv'
+STOCKFISH_PATH = '../magnus/stockfish-10-linux/Linux/stockfish_10_x64'
 
 def main():
     # parse argv
-    stockfish_path = sys.argv[1]
-    owner = sys.argv[2]
-    project = sys.argv[3]
-    k = int(sys.argv[4])
-    online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    owner = sys.argv[1]
+    project = sys.argv[2]
+    k = int(sys.argv[3])
+    online = True if sys.argv[4] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
     try:
-        elo = int(sys.argv[6])
+        elo = int(sys.argv[5])
     except ValueError and IndexError:
         elo = DEFAULT_ELO
 
-    stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
+    stockfish = Stockfish(STOCKFISH_PATH, parameters={'Minimum Thinking Time': 1})
     stockfish.set_elo_rating(elo)
-    #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
     client = game_client.GameClient('master', k, 0, stockfish,  owner, project)
     
@@ -139,7 +138,7 @@ def main():
                 elif s is client.server: # received message from server -- it's engine's turn to make a move
                     moveNum, color, apiPort = master_recv_server(client, s)
                     board.set_fen(client.stockfish.get_fen_position())
-                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum, currGame, numGames)
+                    move = distCpuTurn(client, client.stockfish.get_fen_position(), board, color, moveNum)
                     print(client.stockfish.get_board_visual())
                     # now we have the engine's move, we just need to send it back to the server
                     message = {
@@ -165,7 +164,7 @@ def main():
                 exit()
 
 def writeGameResults(winner, gameNum, cpuColor, elo, numWorkers):
-    with open(GAME_FILE, 'a') as file:
+    with open(GAME_FILE, 'a',newline='') as file:
         csvHeaders = ['game', 'cpu color', 'num workers', 'thinking time', 'winner', 'elo']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
         writer.writerow({'game': gameNum, 'cpu color': cpuColor, 'num workers': numWorkers, 'thinking time': ENGINE_TIME, 'winner': winner, 'elo': elo})
@@ -206,7 +205,7 @@ def offlineMaster(client, mode, board, cpuColor, moveNum, currGame=1, numGames=1
         moveNum += 1
         print(client.stockfish.get_board_visual())
     else: # in cpu mode, the the non distributed side is just playing with single node stockfish
-        singleNodeMove = client.stockfish.get_best_move_time(1)
+        singleNodeMove = client.stockfish.get_best_move_time(50)
         if singleNodeMove == None:
             print(f'==== CHECKMATE ==== \n === {cpuColor} WINS! ===')
             writeGameResults(cpuColor, currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
@@ -243,8 +242,12 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     moveStart = time.time()
     print(client.stockfish.get_board_visual())
     move = ''
-    moves = client.gen_moves()
-    if len(moves) < 1:
+    if client.k > 0:
+        moves = client.gen_moves()
+    else:
+        moves = [client.stockfish.get_best_move_time(50)]
+        move = moves[0]
+    if len(moves) < 1 or move == None:
         print(f'==== CHECKMATE ==== \n=== {"BLACK" if cpuColor == "white" else "WHITE"} WINS! ===')
         writeGameResults("black" if cpuColor == "white" else "white", currGame, cpuColor, client.stockfish.get_parameters()["UCI_Elo"], client.k)
         return None, True 
@@ -307,8 +310,12 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     else:
         # just use first move 
         bestMove = moves[0]
-        evaluation = 'Mate in X' if bestMove['Mate'] != None else bestMove['Centipawn']
-        bestMove = bestMove['Move']
+        if client.k > 0:
+            evaluation = 'Mate in X' if bestMove['Mate'] != None else bestMove['Centipawn']
+            bestMove = bestMove['Move']
+        else:
+            evaluation = client.stockfish.get_evaluation()
+            evaluation = evaluation['value']
     if bestMove == None:
         print(moves)
     print(f'Distributed CPU ({cpuColor}) move is: {bestMove}')
@@ -319,7 +326,7 @@ def distCpuTurn(client, board_state, board, cpuColor, moveNum, mode='user', curr
     board.push(chess.Move.from_uci(bestMove))
 
     # write to csv
-    with open(MOVE_FILE, 'a') as file:
+    with open(MOVE_FILE, 'a', newline='') as file:
         writer = csvHeaders = ['game', 'cpu color', 'num workers', 'move number', 'move', 'move evaluation', 'move time']
         writer = csv.DictWriter(file, delimiter=',', fieldnames=csvHeaders)
         writer.writerow({'game': currGame, 'cpu color': cpuColor, 'num workers': client.k, 'move number': moveNum, 'move': bestMove, 'move evaluation': evaluation, 'move time': moveTime})

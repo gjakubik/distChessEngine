@@ -21,23 +21,23 @@ GAME_SERVER_PORT = 5051
 
 MOVE_FILE = 'moveStats.csv'
 GAME_FILE = 'gameStats.csv'
+STOCKFISH_PATH = '../magnus/stockfish-10-linux/Linux/stockfish_10_x64'
 
 def main():
     # parse argv
-    stockfish_path = sys.argv[1]
-    owner = sys.argv[2]
-    project = sys.argv[3]
-    id = int(sys.argv[4])
-    k = int(sys.argv[5])
-    online = True if sys.argv[6] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
-    elo = int(sys.argv[7])
+    owner = sys.argv[1]
+    project = sys.argv[2]
+    id = int(sys.argv[3])
+    k = int(sys.argv[4])
+    online = True if sys.argv[5] == 'True' else False# user must pass in True or False to indicate if wanna play in offline mode or not
+    elo = int(sys.argv[6])
     if online:
-        engineId = sys.argv[8]
+        engineId = sys.argv[7]
     else:
         engineId = 0
     
         
-    stockfish = Stockfish(stockfish_path, parameters={'Minimum Thinking Time': 1})
+    stockfish = Stockfish(STOCKFISH_PATH, parameters={'Minimum Thinking Time': 1})
     stockfish.set_elo_rating(elo)
     #"C:\\Users\\micha\Downloads\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2\\stockfish_14.1_win_x64_avx2.exe"
 
